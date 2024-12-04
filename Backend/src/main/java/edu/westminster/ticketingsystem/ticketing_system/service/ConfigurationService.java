@@ -1,6 +1,8 @@
 package edu.westminster.ticketingsystem.ticketing_system.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
+import edu.westminster.ticketingsystem.ticketing_system.model.ConfigurationData;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,8 +12,8 @@ import org.springframework.stereotype.Service;
 public class ConfigurationService {
 
     private final FileService fileService;
-
     private final SystemConfiguration systemConfiguration;
+    private final ObjectMapper objectMapper;
 
     // Automatically load configuration after Spring context initialization
     @PostConstruct
@@ -27,7 +29,6 @@ public class ConfigurationService {
     }
 
 
-
     // Save configuration to JSON file
     public void saveConfiguration() {
         boolean saved = fileService.writeConfiguration(systemConfiguration.getConfigurationData());
@@ -40,5 +41,19 @@ public class ConfigurationService {
 
     public SystemConfiguration getConfiguration() {
         return this.systemConfiguration;
+    }
+
+    public boolean getSystemStatus() {
+        return this.systemConfiguration.isSystemConfigured();
+    }
+
+    public ConfigurationData updateSystemConfigData(ConfigurationData newConfigurationData) {
+        try {
+            objectMapper.readerForUpdating(systemConfiguration.getConfigurationData()).readValue(objectMapper.writeValueAsString(newConfigurationData));
+            saveConfiguration();
+        } catch (Exception e) {
+            System.out.println("Failed to update data");
+        }
+        return null;
     }
 }
