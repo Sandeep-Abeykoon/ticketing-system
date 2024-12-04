@@ -2,6 +2,7 @@ package edu.westminster.ticketingsystem.ticketing_system.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.westminster.ticketingsystem.ticketing_system.model.ConfigurationData;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -10,18 +11,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 @Service
+@AllArgsConstructor
 public class FileService {
 
     private static final String CONFIG_FILE = "src/main/java/edu/westminster/ticketingsystem/ticketing_system/config/systemConfig.json";
 
     private final ObjectMapper objectMapper;
 
-    public FileService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
     // Read configuration JSON and update the given ConfigurationData object
     public boolean readConfiguration(ConfigurationData configurationData) {
+        //Todo Validation
         File file = new File(CONFIG_FILE);
         if (!file.exists() || file.length() == 0) {
             System.out.println("Configuration file is missing or empty.");

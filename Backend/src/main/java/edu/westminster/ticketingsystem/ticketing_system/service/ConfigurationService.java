@@ -2,18 +2,16 @@ package edu.westminster.ticketingsystem.ticketing_system.service;
 
 import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ConfigurationService {
 
     private final FileService fileService;
-    private final SystemConfiguration systemConfiguration;
 
-    public ConfigurationService(FileService fileService, SystemConfiguration systemConfiguration) {
-        this.fileService = fileService;
-        this.systemConfiguration = systemConfiguration;
-    }
+    private final SystemConfiguration systemConfiguration;
 
     // Automatically load configuration after Spring context initialization
     @PostConstruct
@@ -28,6 +26,8 @@ public class ConfigurationService {
         }
     }
 
+
+
     // Save configuration to JSON file
     public void saveConfiguration() {
         boolean saved = fileService.writeConfiguration(systemConfiguration.getConfigurationData());
@@ -36,5 +36,9 @@ public class ConfigurationService {
         } else {
             System.out.println("Failed to save configuration.");
         }
+    }
+
+    public SystemConfiguration getConfiguration() {
+        return this.systemConfiguration;
     }
 }
