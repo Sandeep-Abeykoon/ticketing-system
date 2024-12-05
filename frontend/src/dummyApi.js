@@ -12,6 +12,12 @@ export const checkSystemConfigured = async () => {
   return response.data;
 };
 
+// Update system status (run/halt)
+export const updateSystemStatus = async (status) => {
+  const response = await axios.put(`${API_URL}/configuration/status`, { systemConfigured: status });
+  return response.data;
+};
+
 // Fetch current configuration
 export const fetchConfiguration = async () => {
   const response = await axios.get(`${API_URL}/configuration`);

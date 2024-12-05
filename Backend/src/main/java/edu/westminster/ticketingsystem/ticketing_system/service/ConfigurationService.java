@@ -47,6 +47,10 @@ public class ConfigurationService {
         return this.systemConfiguration.isSystemConfigured();
     }
 
+    public void updateSystemStatus(boolean systemConfigured) {
+        systemConfiguration.setSystemConfigured(systemConfigured);
+    }
+
     public ConfigurationData updateSystemConfigData(ConfigurationData newConfigurationData) {
         try {
             objectMapper.readerForUpdating(systemConfiguration.getConfigurationData()).readValue(objectMapper.writeValueAsString(newConfigurationData));

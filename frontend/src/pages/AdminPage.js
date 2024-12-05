@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchConfiguration, updateConfiguration } from "../dummyApi";
-import { TextField, Button, Box, Alert } from "@mui/material";
+import { fetchConfiguration, updateConfiguration, updateSystemStatus } from "../dummyApi";
+import { TextField, Button, Box, Alert, Typography } from "@mui/material";
 
 const AdminPage = () => {
   const [formData, setFormData] = useState({
@@ -49,14 +49,33 @@ const AdminPage = () => {
     }
   };
 
+  const handleSystemToggle = async () => {
+    try {
+      const newStatus = !systemConfigured; // Toggle the current status
+      const response = await updateSystemStatus(newStatus);
+      setSystemConfigured(newStatus);
+      setMessage({ type: "success", text: response });
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to update system status." });
+    }
+  };
+
   return (
     <div style={{ width: "60%", margin: "auto", marginTop: 20 }}>
       <h1>Admin Dashboard</h1>
       {message && <Alert severity={message.type}>{message.text}</Alert>}
-      <p>
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
         <strong>System Status:</strong>{" "}
-        {systemConfigured ? "Configured and Running" : "Not Configured"}
-      </p>
+        {systemConfigured ? "Configured and Running" : "Not Configured / Halted"}
+      </Typography>
+      <Button
+        variant="contained"
+        color={systemConfigured ? "secondary" : "primary"}
+        onClick={handleSystemToggle}
+        sx={{ marginBottom: 4 }}
+      >
+        {systemConfigured ? "Halt System" : "Run System"}
+      </Button>
       <Box component="form" onSubmit={handleSubmit}>
         <TextField
           label="Total Tickets"

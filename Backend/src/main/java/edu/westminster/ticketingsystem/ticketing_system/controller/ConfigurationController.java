@@ -5,6 +5,8 @@ import edu.westminster.ticketingsystem.ticketing_system.service.ConfigurationSer
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @AllArgsConstructor
 @CrossOrigin
@@ -23,8 +25,13 @@ public class ConfigurationController {
         return configurationService.getSystemStatus();
     }
 
+    @PutMapping("/status")
+    public void updateSystemStatus(@RequestBody Map<String, Boolean> statusRequest) {
+        configurationService.updateSystemStatus(statusRequest.get("systemConfigured"));
+    }
+
     @PutMapping
-    public ConfigurationData updateSystemConfigData(@RequestBody ConfigurationData configurationData) {
-        return configurationService.updateSystemConfigData(configurationData);
+    public ConfigurationData updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
+        return configurationService.updateSystemConfigData(newConfigurationData);
     }
 }
