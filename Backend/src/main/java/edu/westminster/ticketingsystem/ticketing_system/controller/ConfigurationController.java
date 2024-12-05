@@ -20,6 +20,11 @@ public class ConfigurationController {
         return configurationService.getConfiguration();
     }
 
+    @PutMapping
+    public ConfigurationData updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
+        return configurationService.updateSystemConfigData(newConfigurationData);
+    }
+
     @GetMapping("/status")
     public boolean getSystemStatus() {
         return configurationService.getSystemStatus();
@@ -30,8 +35,4 @@ public class ConfigurationController {
         configurationService.updateSystemStatus(statusRequest.get("systemConfigured"));
     }
 
-    @PutMapping
-    public ConfigurationData updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
-        return configurationService.updateSystemConfigData(newConfigurationData);
-    }
 }
