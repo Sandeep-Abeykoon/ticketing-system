@@ -27,7 +27,7 @@ public class ConfigurationController {
 
     @GetMapping("/status")
     public boolean getSystemStatus() {
-        return configurationService.getSystemStatus();
+        return configurationService.getSystemConfigStatus();
     }
 
 }

@@ -42,7 +42,7 @@ public class ConfigurationService {
         return this.systemConfiguration;
     }
 
-    public boolean getSystemStatus() {
+    public boolean getSystemConfigStatus() {
         return this.systemConfiguration.isSystemConfigured();
     }
 

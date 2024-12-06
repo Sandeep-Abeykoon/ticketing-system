@@ -1,38 +1,33 @@
 package edu.westminster.ticketingsystem.ticketing_system.model;
 
-import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class Vendor implements Runnable {
     private final String vendorId;
     private final int ticketsPerRelease;
     private final int releaseInterval; // in milliseconds
-    private final TicketPool ticketPool;
+    private final TicketService ticketService;
 
-    public Vendor(String vendorId, int ticketsPerRelease, int releaseInterval, TicketPool ticketPool) {
+    public Vendor(String vendorId, int ticketsPerRelease, int releaseInterval, TicketService ticketService) {
+        this.ticketService = ticketService;
         this.vendorId = vendorId;
         this.ticketsPerRelease = ticketsPerRelease;
         this.releaseInterval = releaseInterval;
-        this.ticketPool = ticketPool;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
-                // Create tickets
-                List<Ticket> ticketsToAdd = new ArrayList<>();
-                for (int i = 0; i < ticketsPerRelease; i++) {
-                    String ticketId = UUID.randomUUID().toString();
-                    ticketsToAdd.add(new Ticket(ticketId, vendorId));
-                }
+                // Generate and add tickets
+                boolean added = ticketService.generateAndAddTickets(vendorId, ticketsPerRelease);
 
-                // Add tickets to the pool
-                ticketPool.addTickets(ticketsToAdd);
-                System.out.println("Vendor " + vendorId + " added " + ticketsPerRelease + " tickets.");
+                if (!added) {
+                    System.out.println("Vendor " + vendorId + " could not add tickets to the pool");
+                } else {
+                    System.out.println("Vendor " + vendorId + " added " + ticketsPerRelease + " tickets to the pool");
+                }
 
                 // Wait for the release interval
                 Thread.sleep(releaseInterval);
@@ -40,7 +35,6 @@ public class Vendor implements Runnable {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 System.out.println("Vendor " + vendorId + " interrupted.");
-                break;
             }
         }
     }

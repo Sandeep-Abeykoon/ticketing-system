@@ -1,5 +1,6 @@
 package edu.westminster.ticketingsystem.ticketing_system.component;
 
+import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import edu.westminster.ticketingsystem.ticketing_system.model.Ticket;
 import org.springframework.stereotype.Component;
 
@@ -9,14 +10,22 @@ import java.util.List;
 
 @Component
 public class TicketPool {
-    private final List<Ticket> tickets = Collections.synchronizedList(new ArrayList<>());
+    private final List<Ticket> tickets;
+    private final SystemConfiguration systemConfiguration;
 
-    public synchronized void addTickets(List<Ticket> ticketsToAdd) {
-        tickets.addAll(ticketsToAdd);
-        System.out.println(ticketsToAdd.size() + " tickets added to the pool.");
+    public TicketPool(SystemConfiguration systemConfiguration) {
+        this.systemConfiguration = systemConfiguration;
+        this.tickets = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public synchronized int getTotalTicketCount() {
-        return tickets.size();
+    public synchronized boolean addTickets(List<Ticket> ticketsToAdd) {
+        int maxCapacity = systemConfiguration.getConfigurationData().getMaxTicketCapacity();
+        if (tickets.size() + ticketsToAdd.size() > maxCapacity) {
+            System.out.println("Cannot add tickets: Pool has no space\nTo add : " + ticketsToAdd.size() + " Current size : " + tickets.size() );
+            return false;
+        }
+        tickets.addAll(ticketsToAdd);
+        return true;
     }
 }
+
