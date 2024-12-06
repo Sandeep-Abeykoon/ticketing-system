@@ -21,18 +21,13 @@ public class ConfigurationController {
     }
 
     @PutMapping
-    public ConfigurationData updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
+    public SystemConfiguration updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
         return configurationService.updateSystemConfigData(newConfigurationData);
     }
 
     @GetMapping("/status")
     public boolean getSystemStatus() {
         return configurationService.getSystemStatus();
-    }
-
-    @PutMapping("/status")
-    public void updateSystemStatus(@RequestBody Map<String, Boolean> statusRequest) {
-        configurationService.updateSystemStatus(statusRequest.get("systemConfigured"));
     }
 
 }

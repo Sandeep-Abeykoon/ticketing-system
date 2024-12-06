@@ -20,10 +20,9 @@ public class ConfigurationService {
     public void loadConfiguration() {
         boolean loaded = fileService.readConfiguration(systemConfiguration.getConfigurationData());
         if (loaded) {
-            systemConfiguration.setSystemConfigured(true);
+            this.systemConfiguration.setSystemConfigured(true);
             System.out.println("Configuration loaded successfully.");
         } else {
-            systemConfiguration.setSystemConfigured(false);
             System.out.println("Failed to load configuration. Using default values.");
         }
     }
@@ -47,17 +46,15 @@ public class ConfigurationService {
         return this.systemConfiguration.isSystemConfigured();
     }
 
-    public void updateSystemStatus(boolean systemConfigured) {
-        systemConfiguration.setSystemConfigured(systemConfigured);
-    }
-
-    public ConfigurationData updateSystemConfigData(ConfigurationData newConfigurationData) {
+    public SystemConfiguration updateSystemConfigData(ConfigurationData newConfigurationData) {
+        //Todo Validate the ConfigurationData before setting
+        this.systemConfiguration.setSystemConfigured(true);
         try {
             objectMapper.readerForUpdating(systemConfiguration.getConfigurationData()).readValue(objectMapper.writeValueAsString(newConfigurationData));
             saveConfiguration();
         } catch (Exception e) {
             System.out.println("Failed to update data");
         }
-        return null;
+        return this.systemConfiguration;
     }
 }

@@ -8,6 +8,4 @@ import lombok.Data;
 public class Ticket {
     private String ticketId;
     private String vendorId;
-    private String name;
-    private double price;
 }

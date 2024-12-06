@@ -1,27 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { fetchConfiguration, updateConfiguration, updateSystemStatus } from "../dummyApi";
+import { fetchConfiguration, updateConfiguration } from "../dummyApi";
 import { TextField, Button, Box, Alert, Typography } from "@mui/material";
 
-const AdminPage = () => {
+const ConfigurationPage = () => {
   const [formData, setFormData] = useState({
-    totalTickets: "",
-    ticketReleaseRate: "",
-    customerRetrievalRate: "",
-    maxTicketCapacity: "",
+    totalTickets: 0,
+    ticketReleaseRate: 0,
+    ticketReleaseInterval: 0,
+    customerRetrievalRate: 0,
+    customerRetrievalInterval: 0,
+    maxTicketCapacity: 0,
   });
 
   const [systemConfigured, setSystemConfigured] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchConfiguration();
-        setFormData(data.configurationData);
-        setSystemConfigured(data.systemConfigured);
+        if (data && data.configurationData) {
+          setFormData(data.configurationData);
+          setSystemConfigured(data.systemConfigured);
+        } else {
+          setMessage({ type: "error", text: "Failed to fetch configuration data." });
+        }
       } catch (error) {
-        console.error("Failed to fetch configuration:", error);
         setMessage({ type: "error", text: "Failed to fetch configuration data." });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -40,42 +48,38 @@ const AdminPage = () => {
         ...formData,
         totalTickets: parseInt(formData.totalTickets),
         ticketReleaseRate: parseInt(formData.ticketReleaseRate),
+        ticketReleaseInterval: parseInt(formData.ticketReleaseInterval),
         customerRetrievalRate: parseInt(formData.customerRetrievalRate),
+        customerRetrievalInterval: parseInt(formData.customerRetrievalInterval),
         maxTicketCapacity: parseInt(formData.maxTicketCapacity),
       });
-      setMessage({ type: "success", text: response });
+
+      if (response && response.configurationData) {
+        setFormData(response.configurationData);
+        setSystemConfigured(response.systemConfigured);
+        setMessage({ type: "success", text: "Configuration updated successfully." });
+      } else {
+        setMessage({ type: "error", text: "Failed to update configuration." });
+      }
     } catch (error) {
       setMessage({ type: "error", text: "Failed to update configuration." });
     }
   };
 
-  const handleSystemToggle = async () => {
-    try {
-      const newStatus = !systemConfigured; // Toggle the current status
-      const response = await updateSystemStatus(newStatus);
-      setSystemConfigured(newStatus);
-      setMessage({ type: "success", text: response });
-    } catch (error) {
-      setMessage({ type: "error", text: "Failed to update system status." });
-    }
-  };
+  if (loading) {
+    return <div>Loading configuration...</div>;
+  }
 
   return (
     <div style={{ width: "60%", margin: "auto", marginTop: 20 }}>
-      <h1>Admin Dashboard</h1>
+      <h1>Configuration Page</h1>
       {message && <Alert severity={message.type}>{message.text}</Alert>}
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
-        <strong>System Status:</strong>{" "}
-        {systemConfigured ? "Configured and Running" : "Not Configured / Halted"}
+        <strong style={{ color: "black" }}>Configuration Status:</strong>{" "}
+        <span style={{ color: systemConfigured ? "green" : "red" }}>
+          {systemConfigured ? "Configured" : "Not Configured"}
+        </span>
       </Typography>
-      <Button
-        variant="contained"
-        color={systemConfigured ? "secondary" : "primary"}
-        onClick={handleSystemToggle}
-        sx={{ marginBottom: 4 }}
-      >
-        {systemConfigured ? "Halt System" : "Run System"}
-      </Button>
       <Box component="form" onSubmit={handleSubmit}>
         <TextField
           label="Total Tickets"
@@ -96,9 +100,27 @@ const AdminPage = () => {
           sx={{ marginBottom: 2 }}
         />
         <TextField
+          label="Ticket Release Interval (ms)"
+          name="ticketReleaseInterval"
+          value={formData.ticketReleaseInterval}
+          onChange={handleChange}
+          fullWidth
+          required
+          sx={{ marginBottom: 2 }}
+        />
+        <TextField
           label="Customer Retrieval Rate"
           name="customerRetrievalRate"
           value={formData.customerRetrievalRate}
+          onChange={handleChange}
+          fullWidth
+          required
+          sx={{ marginBottom: 2 }}
+        />
+        <TextField
+          label="Customer Retrieval Interval (ms)"
+          name="customerRetrievalInterval"
+          value={formData.customerRetrievalInterval}
           onChange={handleChange}
           fullWidth
           required
@@ -121,4 +143,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default ConfigurationPage;

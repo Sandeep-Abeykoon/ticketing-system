@@ -7,5 +7,5 @@ import org.springframework.stereotype.Component;
 @Data
 public class SystemConfiguration {
     private final ConfigurationData configurationData;
-    private boolean systemConfigured;
+    private boolean isSystemConfigured;
 }
