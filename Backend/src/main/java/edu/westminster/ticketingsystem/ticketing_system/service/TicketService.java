@@ -22,4 +22,7 @@ public class TicketService {
         }
         return ticketPool.addTickets(ticketsToAdd);
     }
+
+    public boolean retrieveTickets(String customerId, int ticketsPerRetrieval) {
+    }
 }

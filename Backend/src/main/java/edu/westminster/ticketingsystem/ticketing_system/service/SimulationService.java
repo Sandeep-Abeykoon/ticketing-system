@@ -9,12 +9,12 @@ import java.util.List;
 
 @Service
 public class SimulationService {
-    private final VendorFactory vendorFactory;
+    private final ParticipantFactory participantFactory;
     private final List<Thread> vendorThreads;
     private final TicketPool ticketPool;
 
-    public SimulationService(VendorFactory vendorFactory, TicketPool ticketPool){
-        this.vendorFactory = vendorFactory;
+    public SimulationService(ParticipantFactory participantFactory, TicketPool ticketPool){
+        this.participantFactory = participantFactory;
         this.ticketPool = ticketPool;
         this.vendorThreads = new ArrayList<>();
 
@@ -27,7 +27,7 @@ public class SimulationService {
         for (int i = 0; i < numberOfVendors; i++) {
             String vendorId = String.valueOf(i + 1);
 
-            Vendor vendor = vendorFactory.createVendor(vendorId);
+            Vendor vendor = participantFactory.createVendor(vendorId);
             Thread vendorThread = new Thread(vendor);
             vendorThreads.add(vendorThread);
             vendorThread.start();
