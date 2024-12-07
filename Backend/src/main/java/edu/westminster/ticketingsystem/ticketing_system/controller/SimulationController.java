@@ -15,10 +15,10 @@ public class SimulationController {
     private final SimulationService simulationService;
 
     @PostMapping("/start")
-    public String startSimulation(@RequestParam int numberOfVendors) {
+    public String startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
         System.out.println("Start method called");
         try {
-            simulationService.startSimulation(numberOfVendors);
+            simulationService.startSimulation(numberOfVendors, numberOfCustomers);
             return "Simulation started with " + numberOfVendors + " Vendors";
         } catch (Exception e) {
             return "Failed to start simulation " + e.getMessage();
