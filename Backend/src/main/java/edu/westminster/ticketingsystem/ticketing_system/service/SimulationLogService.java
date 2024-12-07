@@ -17,7 +17,7 @@ public class SimulationLogService {
         messagingTemplate.convertAndSend("/topic/ticket-availability", availableTickets);
     }
 
-    public void sendSystemStatus(boolean isRunning) {
+    public void sendSimulationStatus(boolean isRunning) {
         messagingTemplate.convertAndSend("/topic/system-status", isRunning);
     }
 }

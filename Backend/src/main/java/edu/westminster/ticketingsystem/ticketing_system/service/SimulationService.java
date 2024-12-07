@@ -3,7 +3,6 @@ package edu.westminster.ticketingsystem.ticketing_system.service;
 import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
 import edu.westminster.ticketingsystem.ticketing_system.model.Customer;
 import edu.westminster.ticketingsystem.ticketing_system.model.Vendor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,24 +12,29 @@ import java.util.List;
 public class SimulationService {
     private final ParticipantFactory participantFactory;
     private final TicketPool ticketPool;
+    private final SimulationLogService logService;
     private final List<Thread> vendorThreads;
     private final List<Thread> customerThreads;
     private boolean isSimulationRunning;
 
-    public SimulationService(ParticipantFactory participantFactory, TicketPool ticketPool){
+    public SimulationService(ParticipantFactory participantFactory,
+                             TicketPool ticketPool,
+                             SimulationLogService logService){
         this.participantFactory = participantFactory;
         this.ticketPool = ticketPool;
+        this.logService = logService;
         this.vendorThreads = new ArrayList<>();
         this.customerThreads = new ArrayList<>();
         this.isSimulationRunning = false;
     }
 
     public void startSimulation(int numberOfVendors, int numberOfCustomers) {
-        if (!vendorThreads.isEmpty()) {
+        if (isSimulationRunning) {
             throw new IllegalStateException(("Simulation is already running"));
         }
-
         isSimulationRunning = true;
+        logService.sendSimulationStatus(true);
+
 
         /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
            thread starting of vendor and customers
@@ -43,6 +47,7 @@ public class SimulationService {
                 Thread vendorThread = new Thread(vendor);
                 vendorThreads.add(vendorThread);
                 vendorThread.start();
+                logService.sendLog("Vendor " + vendorId + " started");
             }
 
             if (i < numberOfCustomers) {
@@ -51,21 +56,21 @@ public class SimulationService {
                 Thread customerThread = new Thread(customer);
                 customerThreads.add(customerThread);
                 customerThread.start();
+                logService.sendLog("Customer " + customerId + " started");
             }
         }
     }
 
     public void stopSimulation() {
-        for (Thread thread : vendorThreads) {
-            thread.interrupt();
-        }
-        vendorThreads.clear();
+        vendorThreads.forEach(Thread::interrupt);
+        customerThreads.forEach(Thread::interrupt);
 
-        for (Thread thread : customerThreads) {
-            thread.interrupt();
-        }
+        vendorThreads.clear();
         customerThreads.clear();
 
         ticketPool.clearPool();
+        isSimulationRunning = false;
+        logService.sendSimulationStatus(false);
+        logService.sendLog("Simulation stopped");
     }
 }
