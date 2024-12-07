@@ -73,4 +73,8 @@ public class SimulationService {
         logService.sendSimulationStatus(false);
         logService.sendLog("Simulation stopped");
     }
+
+    public Object getSimulationStatus() {
+        return isSimulationRunning;
+    }
 }
