@@ -12,13 +12,6 @@ export const checkSystemConfigured = async () => {
   return response.data;
 };
 
-export const stopSimulation = async () => {
-}
-
-export const startSimulation = async () => {
-}
-
-
 // Fetch current configuration
 export const fetchConfiguration = async () => {
   const response = await axios.get(`${API_URL}/configuration`);
@@ -28,6 +21,27 @@ export const fetchConfiguration = async () => {
 // Update configuration
 export const updateConfiguration = async (config) => {
   const response = await axios.put(`${API_URL}/configuration`, config);
+  return response.data;
+};
+
+// Start simulation
+export const startSimulation = async (numberOfCustomers, numberOfVendors) => {
+  const response = await axios.post(
+    `${API_URL}/simulation/start`,
+    null, // No request body
+    {
+      params: {
+        numberOfCustomers,
+        numberOfVendors,
+      },
+    }
+  );
+  return response.data;
+};
+
+// Stop simulation
+export const stopSimulation = async () => {
+  const response = await axios.post(`${API_URL}/simulation/stop`);
   return response.data;
 };
 

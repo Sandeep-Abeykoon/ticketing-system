@@ -37,7 +37,6 @@ public class TicketPool {
         if (ticketsPerRetrieval > 0) {
             tickets.subList(0, ticketsPerRetrieval).clear();
         }
-        System.out.println("Customer " + customerId + " retrieved " + ticketsPerRetrieval + " tickets");
         return true;
     }
 

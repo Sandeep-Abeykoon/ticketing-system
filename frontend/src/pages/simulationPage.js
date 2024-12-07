@@ -3,8 +3,8 @@ import { checkSystemConfigured, startSimulation, stopSimulation } from "../dummy
 import { TextField, Button, Box, Alert, Typography } from "@mui/material";
 
 const SimulationPage = () => {
-  const [numberOfCustomers, setNumberOfCustomers] = useState("");
-  const [numberOfVendors, setNumberOfVendors] = useState("");
+  const [numberOfCustomers, setNumberOfCustomers] = useState(0);
+  const [numberOfVendors, setNumberOfVendors] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -12,7 +12,6 @@ const SimulationPage = () => {
     try {
       // Check if the system is configured
       const isConfigured = await checkSystemConfigured();
-      console.log(isConfigured);
       if (!isConfigured) {
         setMessage({
           type: "error",
@@ -22,7 +21,7 @@ const SimulationPage = () => {
       }
 
       // Start the simulation
-      await startSimulation(parseInt(numberOfCustomers), parseInt(numberOfVendors));
+      await startSimulation(numberOfCustomers, numberOfVendors);
       setIsRunning(true);
       setMessage({ type: "success", text: "Simulation started successfully." });
     } catch (error) {
@@ -55,7 +54,7 @@ const SimulationPage = () => {
           label="Number of Customers"
           type="number"
           value={numberOfCustomers}
-          onChange={(e) => setNumberOfCustomers(e.target.value)}
+          onChange={(e) => setNumberOfCustomers(Number(e.target.value))}
           fullWidth
           required
           sx={{ marginBottom: 2 }}
@@ -64,7 +63,7 @@ const SimulationPage = () => {
           label="Number of Vendors"
           type="number"
           value={numberOfVendors}
-          onChange={(e) => setNumberOfVendors(e.target.value)}
+          onChange={(e) => setNumberOfVendors(Number(e.target.value))}
           fullWidth
           required
           sx={{ marginBottom: 2 }}

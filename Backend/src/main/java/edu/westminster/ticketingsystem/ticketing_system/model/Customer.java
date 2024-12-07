@@ -26,7 +26,7 @@ public class Customer implements Runnable{
                 if (!retrieved) {
                     System.out.println("Customer " + customerId + " could not retrieve tickets");
                 } else {
-                    System.out.println("Customer " + customerId + "retrieved " + ticketsPerRetrieval + " tickets");
+                    System.out.println("Customer " + customerId + " retrieved " + ticketsPerRetrieval + " tickets");
                 }
 
                 // Wait for the retrieval interval
