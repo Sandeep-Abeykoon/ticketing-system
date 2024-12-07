@@ -25,7 +25,12 @@ public class TicketPool {
             return false;
         }
         tickets.addAll(ticketsToAdd);
+        System.out.println("Pool current size: " + tickets.size());
         return true;
+    }
+
+    public synchronized void clearPool() {
+        tickets.clear();
     }
 }
 

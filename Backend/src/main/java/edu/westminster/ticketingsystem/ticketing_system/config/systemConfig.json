@@ -4,5 +4,5 @@
   "ticketReleaseInterval" : 1000,
   "customerRetrievalRate" : 0,
   "customerRetrievalInterval" : 0,
-  "maxTicketCapacity" : 100
+  "maxTicketCapacity" : 4
 }

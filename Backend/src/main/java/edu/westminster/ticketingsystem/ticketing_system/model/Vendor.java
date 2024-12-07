@@ -1,7 +1,6 @@
 package edu.westminster.ticketingsystem.ticketing_system.model;
 
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class Vendor implements Runnable {
     private final String vendorId;
@@ -9,11 +8,11 @@ public class Vendor implements Runnable {
     private final int releaseInterval; // in milliseconds
     private final TicketService ticketService;
 
-    public Vendor(String vendorId, int ticketsPerRelease, int releaseInterval, TicketService ticketService) {
-        this.ticketService = ticketService;
+    public Vendor(String vendorId, ConfigurationData configurationData, TicketService ticketService) {
         this.vendorId = vendorId;
-        this.ticketsPerRelease = ticketsPerRelease;
-        this.releaseInterval = releaseInterval;
+        this.ticketsPerRelease = configurationData.getTicketReleaseRate();
+        this.releaseInterval = configurationData.getTicketReleaseInterval();
+        this.ticketService = ticketService;
     }
 
     @Override
