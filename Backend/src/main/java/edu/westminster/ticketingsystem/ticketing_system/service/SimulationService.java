@@ -3,6 +3,7 @@ package edu.westminster.ticketingsystem.ticketing_system.service;
 import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
 import edu.westminster.ticketingsystem.ticketing_system.model.Customer;
 import edu.westminster.ticketingsystem.ticketing_system.model.Vendor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,19 +15,22 @@ public class SimulationService {
     private final TicketPool ticketPool;
     private final List<Thread> vendorThreads;
     private final List<Thread> customerThreads;
-
+    private boolean isSimulationRunning;
 
     public SimulationService(ParticipantFactory participantFactory, TicketPool ticketPool){
         this.participantFactory = participantFactory;
         this.ticketPool = ticketPool;
         this.vendorThreads = new ArrayList<>();
         this.customerThreads = new ArrayList<>();
-
+        this.isSimulationRunning = false;
     }
+
     public void startSimulation(int numberOfVendors, int numberOfCustomers) {
         if (!vendorThreads.isEmpty()) {
             throw new IllegalStateException(("Simulation is already running"));
         }
+
+        isSimulationRunning = true;
 
         /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
            thread starting of vendor and customers
