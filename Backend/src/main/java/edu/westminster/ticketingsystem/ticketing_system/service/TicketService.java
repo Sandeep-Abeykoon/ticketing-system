@@ -26,4 +26,8 @@ public class TicketService {
     public boolean retrieveTickets(String customerId, int ticketsPerRetrieval) {
         return ticketPool.retrieveTickets(customerId, ticketsPerRetrieval);
     }
+
+    public int geTicketCount() {
+        return ticketPool.getTicketCount();
+    }
 }

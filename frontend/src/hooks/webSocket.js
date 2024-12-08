@@ -3,28 +3,32 @@ import { useState, useEffect } from "react";
 
 const useWebSocket = () => {
   const [logs, setLogs] = useState([]);
-  const [ticketAvailability, setTicketAvailability] = useState(0);
-  const [systemStatus, setSystemStatus] = useState(false);
+  const [ticketAvailability, setTicketAvailability] = useState(null);
+  const [simulationStatus, setSimulationStatus] = useState(null);
 
   useEffect(() => {
-      
     const client = new Client({
-      brokerURL: "ws://localhost:8080/ws-status", // Update with your WebSocket endpoint
+      brokerURL: "ws://localhost:8080/ws-status", // WebSocket endpoint
       reconnectDelay: 5000, // Auto-reconnect delay
       onConnect: () => {
         console.log("WebSocket connected");
 
         // Subscribe to system status
         client.subscribe("/topic/simulation-status", (message) => {
-          const status = JSON.parse(message.body);
-          setSystemStatus(status.running);
-          setTicketAvailability(status.ticketCount);
+          const isRunning = JSON.parse(message.body);
+          setSimulationStatus(isRunning);
         });
 
         // Subscribe to logs
         client.subscribe("/topic/simulation-logs", (message) => {
           const log = message.body;
           setLogs((prevLogs) => [...prevLogs, log]);
+        });
+
+        // Subscribe to ticket availability
+        client.subscribe("/topic/ticket-availability", (message) => {
+          const ticketCount = parseInt(message.body, 10);
+          setTicketAvailability(ticketCount);
         });
       },
       onDisconnect: () => {
@@ -39,7 +43,7 @@ const useWebSocket = () => {
     };
   }, []);
 
-  return { logs, ticketAvailability, systemStatus };
+  return { logs, ticketAvailability, simulationStatus };
 };
 
 export default useWebSocket;

@@ -77,4 +77,12 @@ public class SimulationService {
     public boolean getSimulationStatus() {
         return isSimulationRunning;
     }
+
+    public int getNumberOfVendors() {
+        return vendorThreads.size();
+    }
+
+    public int getNumberOfCustomers() {
+        return customerThreads.size();
+    }
 }

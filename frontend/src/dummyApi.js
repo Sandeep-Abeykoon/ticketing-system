@@ -1,7 +1,4 @@
 // src/api.js
-
-import { tickets } from "./dummyData";
-
 import axios from "axios";
 
 const API_URL = "http://localhost:8080/api"; // Backend base URL
@@ -21,6 +18,12 @@ export const fetchConfiguration = async () => {
 // Update configuration
 export const updateConfiguration = async (config) => {
   const response = await axios.put(`${API_URL}/configuration`, config);
+  return response.data;
+};
+
+export const getSimulationStatus = async () => {
+  const response = await axios.get(`${API_URL}/simulation/status`);
+  console.log(response.data);
   return response.data;
 };
 

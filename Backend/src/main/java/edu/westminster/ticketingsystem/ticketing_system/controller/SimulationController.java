@@ -1,10 +1,15 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
 
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
+import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @AllArgsConstructor
@@ -13,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class SimulationController {
 
     private final SimulationService simulationService;
+    private  final TicketService ticketService;
 
     @PostMapping("/start")
     public ResponseEntity<String> startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
@@ -35,7 +41,12 @@ public class SimulationController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Boolean> getSimulationStatus() {
-        return ResponseEntity.ok(simulationService.getSimulationStatus());
+    public ResponseEntity<Map<String, Object>> getSimulationStatus() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("isRunning", simulationService.getSimulationStatus());
+        response.put("ticketCount", ticketService.geTicketCount());
+        response.put("numberOfVendors", simulationService.getNumberOfVendors());
+        response.put("numberOfCustomers", simulationService.getNumberOfCustomers());
+        return ResponseEntity.ok(response);
     }
 }

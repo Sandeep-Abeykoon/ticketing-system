@@ -2,6 +2,7 @@ package edu.westminster.ticketingsystem.ticketing_system.component;
 
 import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import edu.westminster.ticketingsystem.ticketing_system.model.Ticket;
+import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,9 +13,11 @@ import java.util.List;
 public class TicketPool {
     private final List<Ticket> tickets;
     private final SystemConfiguration systemConfiguration;
+    private final SimulationLogService logService;
 
-    public TicketPool(SystemConfiguration systemConfiguration) {
+    public TicketPool(SystemConfiguration systemConfiguration, SimulationLogService logService) {
         this.systemConfiguration = systemConfiguration;
+        this.logService = logService;
         this.tickets = Collections.synchronizedList(new ArrayList<>());
     }
 
@@ -26,12 +29,14 @@ public class TicketPool {
         }
         tickets.addAll(ticketsToAdd);
         System.out.println("Pool current size: " + tickets.size());
+        logService.sendTicketAvailability(tickets.size());
         return true;
     }
 
     public synchronized boolean retrieveTickets(String customerId, int ticketsPerRetrieval) {
         if (tickets.size() < ticketsPerRetrieval) {
             System.out.println("Not enough tickets available for Customer " + customerId);
+            logService.sendTicketAvailability(tickets.size());
             return false;
         }
         if (ticketsPerRetrieval > 0) {
@@ -42,6 +47,10 @@ public class TicketPool {
 
     public synchronized void clearPool() {
         tickets.clear();
+    }
+
+    public synchronized int getTicketCount() {
+        return tickets.size();
     }
 }
 

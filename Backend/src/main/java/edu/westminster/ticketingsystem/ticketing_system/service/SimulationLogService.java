@@ -19,6 +19,7 @@ public class SimulationLogService {
     }
 
     public void sendSimulationStatus(boolean isRunning) {
-        messagingTemplate.convertAndSend("/topic/system-status", isRunning);
+        System.out.println("Simulation started");
+        messagingTemplate.convertAndSend("/topic/simulation-status", isRunning);
     }
 }
