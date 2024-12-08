@@ -10,6 +10,7 @@ public class SimulationLogService {
     private final SimpMessagingTemplate messagingTemplate;
 
     public void sendLog(String logMessage) {
+        System.out.println(logMessage);
         messagingTemplate.convertAndSend("/topic/simulation-logs", logMessage);
     }
 
