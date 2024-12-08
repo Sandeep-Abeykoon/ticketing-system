@@ -24,18 +24,17 @@ public class TicketPool {
     public synchronized boolean addTickets(List<Ticket> ticketsToAdd) {
         int maxCapacity = systemConfiguration.getConfigurationData().getMaxTicketCapacity();
         if (tickets.size() + ticketsToAdd.size() > maxCapacity) {
-            System.out.println("Cannot add tickets: Pool has no space");
+            logService.sendLog("Cannot add tickets: Pool has no space");
             return false;
         }
         tickets.addAll(ticketsToAdd);
-        System.out.println("Pool current size: " + tickets.size());
         logService.sendTicketAvailability(tickets.size());
         return true;
     }
 
     public synchronized boolean retrieveTickets(String customerId, int ticketsPerRetrieval) {
         if (tickets.size() < ticketsPerRetrieval) {
-            System.out.println("Not enough tickets available for Customer " + customerId);
+            logService.sendLog("Not enough tickets available for Customer " + customerId);
             logService.sendTicketAvailability(tickets.size());
             return false;
         }

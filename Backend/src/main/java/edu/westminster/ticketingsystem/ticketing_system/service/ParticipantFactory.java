@@ -11,12 +11,13 @@ import org.springframework.stereotype.Component;
 public class ParticipantFactory {
     private final TicketService ticketService;
     private final ConfigurationData configurationData;
+    private final SimulationLogService logService;
 
     public Vendor createVendor(String vendorId) {
-        return new Vendor(vendorId, configurationData, ticketService);
+        return new Vendor(vendorId, configurationData, ticketService, logService);
     }
 
     public Customer createCustomer(String customerId) {
-        return new Customer(customerId, configurationData, ticketService);
+        return new Customer(customerId, configurationData, ticketService, logService);
     }
 }

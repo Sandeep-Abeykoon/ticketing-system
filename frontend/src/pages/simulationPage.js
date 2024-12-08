@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useWebSocket from "../hooks/webSocket";
 import { startSimulation, stopSimulation, getSimulationStatus } from "../dummyApi";
 import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
@@ -11,6 +11,7 @@ const SimulationPage = () => {
   const [initialTicketAvailability, setInitialTicketAvailability] = useState(0);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const logContainerRef = useRef(null); // Reference for the log container
 
   // Fetch initial simulation status and ticket count
   useEffect(() => {
@@ -31,6 +32,13 @@ const SimulationPage = () => {
 
     fetchInitialStatus();
   }, []);
+
+  // Auto-scroll to the latest log when logs change
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   const handleStart = async () => {
     try {
@@ -110,6 +118,7 @@ const SimulationPage = () => {
       </Box>
       
       <Paper
+        ref={logContainerRef} // Attach the log container ref here
         style={{
           height: "200px",
           overflowY: "scroll",

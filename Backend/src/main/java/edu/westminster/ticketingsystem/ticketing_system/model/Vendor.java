@@ -1,5 +1,6 @@
 package edu.westminster.ticketingsystem.ticketing_system.model;
 
+import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 
 public class Vendor implements Runnable {
@@ -7,12 +8,17 @@ public class Vendor implements Runnable {
     private final int ticketsPerRelease;
     private final int releaseInterval; // in milliseconds
     private final TicketService ticketService;
+    private final SimulationLogService logService;
 
-    public Vendor(String vendorId, ConfigurationData configurationData, TicketService ticketService) {
+    public Vendor(String vendorId,
+                  ConfigurationData configurationData,
+                  TicketService ticketService,
+                  SimulationLogService logService) {
         this.vendorId = vendorId;
         this.ticketsPerRelease = configurationData.getTicketReleaseRate();
         this.releaseInterval = configurationData.getTicketReleaseInterval();
         this.ticketService = ticketService;
+        this.logService = logService;
     }
 
     @Override
@@ -23,9 +29,9 @@ public class Vendor implements Runnable {
                 boolean added = ticketService.generateAndAddTickets(vendorId, ticketsPerRelease);
 
                 if (!added) {
-                    System.out.println("Vendor " + vendorId + " could not add tickets to the pool");
+                    logService.sendLog("Vendor " + vendorId + " could not add tickets to the pool");
                 } else {
-                    System.out.println("Vendor " + vendorId + " added " + ticketsPerRelease + " tickets to the pool");
+                    logService.sendLog("Vendor " + vendorId + " added " + ticketsPerRelease + " tickets to the pool");
                 }
 
                 // Wait for the release interval
@@ -33,7 +39,7 @@ public class Vendor implements Runnable {
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.out.println("Vendor " + vendorId + " interrupted.");
+                logService.sendLog("Vendor " + vendorId + " interrupted.");
             }
         }
     }
