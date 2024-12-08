@@ -16,6 +16,7 @@ const ConfigurationPage = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Fetch configuration on page load
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -27,6 +28,7 @@ const ConfigurationPage = () => {
           setMessage({ type: "error", text: "Failed to fetch configuration data." });
         }
       } catch (error) {
+        console.error("Failed to fetch configuration data:", error);
         setMessage({ type: "error", text: "Failed to fetch configuration data." });
       } finally {
         setLoading(false);
@@ -36,11 +38,13 @@ const ConfigurationPage = () => {
     fetchData();
   }, []);
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -62,9 +66,21 @@ const ConfigurationPage = () => {
         setMessage({ type: "error", text: "Failed to update configuration." });
       }
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to update configuration." });
+      console.error("Failed to update configuration:", error);
+      setMessage({
+        type: "error",
+        text: error.response?.data || "Failed to update configuration.",
+      });
     }
   };
+
+  // Automatically dismiss messages after a few seconds
+  useEffect(() => {
+    if (message) {
+      const timeout = setTimeout(() => setMessage(""), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [message]);
 
   if (loading) {
     return <div>Loading configuration...</div>;
@@ -73,7 +89,11 @@ const ConfigurationPage = () => {
   return (
     <div style={{ width: "60%", margin: "auto", marginTop: 20 }}>
       <h1>Configuration Page</h1>
-      {message && <Alert severity={message.type}>{message.text}</Alert>}
+      {message && (
+        <Alert severity={message.type} sx={{ mb: 2 }}>
+          {message.text}
+        </Alert>
+      )}
       <Typography variant="h6" sx={{ marginBottom: 2 }}>
         <strong style={{ color: "black" }}>Configuration Status:</strong>{" "}
         <span style={{ color: systemConfigured ? "green" : "red" }}>

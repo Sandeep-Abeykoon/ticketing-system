@@ -5,25 +5,23 @@ import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material"
 
 const SimulationPage = () => {
   const { logs, ticketAvailability: wsTicketAvailability, simulationStatus: wsSimulationStatus } = useWebSocket();
-  const [numberOfCustomers, setNumberOfCustomers] = useState(""); // Initialize as an empty string
-  const [numberOfVendors, setNumberOfVendors] = useState(""); // Initialize as an empty string
-  const [simulationStatus, setSimulationStatus] = useState(false); // REST API status
+  const [numberOfCustomers, setNumberOfCustomers] = useState("");
+  const [numberOfVendors, setNumberOfVendors] = useState("");
+  const [simulationStatus, setSimulationStatus] = useState(false);
   const [initialTicketAvailability, setInitialTicketAvailability] = useState(0);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(null); // Updated to null initially
   const [isLoading, setIsLoading] = useState(true);
-  const [localLogs, setLocalLogs] = useState([]); // To handle logs after clearing
-  const logContainerRef = useRef(null); // Reference for the log container
+  const [localLogs, setLocalLogs] = useState([]);
+  const logContainerRef = useRef(null);
 
-  // Fetch initial simulation status and ticket count
   useEffect(() => {
     const fetchInitialStatus = async () => {
       try {
         const response = await getSimulationStatus();
-        console.log("Initial Simulation Status:", response);
-        setSimulationStatus(response.isRunning); // Use REST API response
+        setSimulationStatus(response.isRunning);
         setInitialTicketAvailability(response.ticketCount);
-        setNumberOfVendors(response.numberOfVendors?.toString() || ""); // Convert to string for TextField
-        setNumberOfCustomers(response.numberOfCustomers?.toString() || ""); // Convert to string for TextField
+        setNumberOfVendors(response.numberOfVendors?.toString() || "");
+        setNumberOfCustomers(response.numberOfCustomers?.toString() || "");
       } catch (error) {
         console.error("Failed to fetch simulation status:", error);
       } finally {
@@ -34,7 +32,6 @@ const SimulationPage = () => {
     fetchInitialStatus();
   }, []);
 
-  // Auto-scroll to the latest log when logs change
   useEffect(() => {
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -43,11 +40,13 @@ const SimulationPage = () => {
 
   const handleStart = async () => {
     try {
-      await startSimulation(Number(numberOfCustomers), Number(numberOfVendors)); // Convert to numbers
+      await startSimulation(Number(numberOfCustomers), Number(numberOfVendors));
       setMessage({ type: "success", text: "Simulation started successfully." });
-      setSimulationStatus(true); // Optimistically set the simulation as running
+      setSimulationStatus(true);
+      dismissMessageAfterDelay();
     } catch (error) {
       setMessage({ type: "error", text: "Failed to start simulation." });
+      dismissMessageAfterDelay();
     }
   };
 
@@ -55,22 +54,28 @@ const SimulationPage = () => {
     try {
       await stopSimulation();
       setMessage({ type: "success", text: "Simulation stopped successfully." });
-      setSimulationStatus(false); // Optimistically set the simulation as stopped
+      setSimulationStatus(false);
+      dismissMessageAfterDelay();
     } catch (error) {
       setMessage({ type: "error", text: "Failed to stop simulation." });
+      dismissMessageAfterDelay();
     }
   };
 
   const handleClearLogs = () => {
-    setLocalLogs([]); // Clear the locally managed logs
+    setLocalLogs([]);
     setMessage({ type: "success", text: "Logs cleared successfully!" });
+    dismissMessageAfterDelay();
   };
 
-  // Determine the current simulation status
+  const dismissMessageAfterDelay = () => {
+    setTimeout(() => setMessage(null), 3000); // Message disappears after 3 seconds
+  };
+
   const isSimulationRunning =
-    wsSimulationStatus !== null ? wsSimulationStatus : simulationStatus; // Prioritize WebSocket updates if available
+    wsSimulationStatus !== null ? wsSimulationStatus : simulationStatus;
   const currentTicketAvailability =
-    wsTicketAvailability !== null ? wsTicketAvailability : initialTicketAvailability; // Prioritize WebSocket updates if available
+    wsTicketAvailability !== null ? wsTicketAvailability : initialTicketAvailability;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -88,19 +93,19 @@ const SimulationPage = () => {
           label="Number of Customers"
           type="number"
           value={numberOfCustomers}
-          onChange={(e) => setNumberOfCustomers(e.target.value)} // No conversion here
+          onChange={(e) => setNumberOfCustomers(e.target.value)}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning} // Disable when simulation is running
+          disabled={isSimulationRunning}
         />
         <TextField
           label="Number of Vendors"
           type="number"
           value={numberOfVendors}
-          onChange={(e) => setNumberOfVendors(e.target.value)} // No conversion here
+          onChange={(e) => setNumberOfVendors(e.target.value)}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning} // Disable when simulation is running
+          disabled={isSimulationRunning}
         />
       </Box>
       
@@ -131,7 +136,7 @@ const SimulationPage = () => {
       </Box>
       
       <Paper
-        ref={logContainerRef} // Attach the log container ref here
+        ref={logContainerRef}
         style={{
           height: "200px",
           overflowY: "scroll",
