@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import useWebSocket from "../hooks/webSocket";
 import { startSimulation, stopSimulation, getSimulationStatus } from "../dummyApi";
 import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
 
 const SimulationPage = () => {
   const { logs, ticketAvailability: wsTicketAvailability, simulationStatus: wsSimulationStatus } = useWebSocket();
-  const [numberOfCustomers, setNumberOfCustomers] = useState(0);
-  const [numberOfVendors, setNumberOfVendors] = useState(0);
+  const [numberOfCustomers, setNumberOfCustomers] = useState(""); // Initialize as an empty string
+  const [numberOfVendors, setNumberOfVendors] = useState(""); // Initialize as an empty string
   const [simulationStatus, setSimulationStatus] = useState(false); // REST API status
   const [initialTicketAvailability, setInitialTicketAvailability] = useState(0);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [localLogs, setLocalLogs] = useState([]); // To handle logs after clearing
   const logContainerRef = useRef(null); // Reference for the log container
 
   // Fetch initial simulation status and ticket count
@@ -21,8 +22,8 @@ const SimulationPage = () => {
         console.log("Initial Simulation Status:", response);
         setSimulationStatus(response.isRunning); // Use REST API response
         setInitialTicketAvailability(response.ticketCount);
-        setNumberOfVendors(response.numberOfVendors);
-        setNumberOfCustomers(response.numberOfCustomers);
+        setNumberOfVendors(response.numberOfVendors?.toString() || ""); // Convert to string for TextField
+        setNumberOfCustomers(response.numberOfCustomers?.toString() || ""); // Convert to string for TextField
       } catch (error) {
         console.error("Failed to fetch simulation status:", error);
       } finally {
@@ -42,7 +43,7 @@ const SimulationPage = () => {
 
   const handleStart = async () => {
     try {
-      await startSimulation(numberOfCustomers, numberOfVendors);
+      await startSimulation(Number(numberOfCustomers), Number(numberOfVendors)); // Convert to numbers
       setMessage({ type: "success", text: "Simulation started successfully." });
       setSimulationStatus(true); // Optimistically set the simulation as running
     } catch (error) {
@@ -58,6 +59,11 @@ const SimulationPage = () => {
     } catch (error) {
       setMessage({ type: "error", text: "Failed to stop simulation." });
     }
+  };
+
+  const handleClearLogs = () => {
+    setLocalLogs([]); // Clear the locally managed logs
+    setMessage({ type: "success", text: "Logs cleared successfully!" });
   };
 
   // Determine the current simulation status
@@ -82,7 +88,7 @@ const SimulationPage = () => {
           label="Number of Customers"
           type="number"
           value={numberOfCustomers}
-          onChange={(e) => setNumberOfCustomers(Number(e.target.value))}
+          onChange={(e) => setNumberOfCustomers(e.target.value)} // No conversion here
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning} // Disable when simulation is running
@@ -91,7 +97,7 @@ const SimulationPage = () => {
           label="Number of Vendors"
           type="number"
           value={numberOfVendors}
-          onChange={(e) => setNumberOfVendors(Number(e.target.value))}
+          onChange={(e) => setNumberOfVendors(e.target.value)} // No conversion here
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning} // Disable when simulation is running
@@ -115,6 +121,13 @@ const SimulationPage = () => {
         >
           Stop Simulation
         </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleClearLogs}
+        >
+          Clear Logs
+        </Button>
       </Box>
       
       <Paper
@@ -128,7 +141,7 @@ const SimulationPage = () => {
         }}
       >
         <Typography variant="h6" sx={{ mb: 1 }}>Logs</Typography>
-        {logs.map((log, index) => (
+        {(localLogs.length > 0 ? localLogs : logs).map((log, index) => (
           <Typography key={index} variant="body2" sx={{ mt: 1 }}>
             {log}
           </Typography>
