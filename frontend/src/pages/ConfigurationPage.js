@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { fetchConfiguration, updateConfiguration } from "../dummyApi";
+import { validateField } from "../utils/validation";
 import { TextField, Button, Box, Alert, Typography } from "@mui/material";
 
 const ConfigurationPage = () => {
   const [formData, setFormData] = useState({
-    totalTickets: 0,
-    ticketReleaseRate: 0,
-    ticketReleaseInterval: 0,
-    customerRetrievalRate: 0,
-    customerRetrievalInterval: 0,
-    maxTicketCapacity: 0,
+    totalTickets: "",
+    ticketReleaseRate: "",
+    ticketReleaseInterval: "",
+    customerRetrievalRate: "",
+    customerRetrievalInterval: "",
+    maxTicketCapacity: "",
   });
 
   const [systemConfigured, setSystemConfigured] = useState(false);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading state for fetching data
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submission
+  const [errors, setErrors] = useState({}); // Validation state
 
   // Fetch configuration on page load
   useEffect(() => {
@@ -38,26 +41,39 @@ const ConfigurationPage = () => {
     fetchData();
   }, []);
 
-  // Handle form input changes
+  // Handle form input changes with validation
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const parsedValue = value === "" ? "" : parseInt(value, 10);
+    const error = validateField(name, parsedValue);
+
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: parsedValue,
+    }));
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await updateConfiguration({
-        ...formData,
-        totalTickets: parseInt(formData.totalTickets),
-        ticketReleaseRate: parseInt(formData.ticketReleaseRate),
-        ticketReleaseInterval: parseInt(formData.ticketReleaseInterval),
-        customerRetrievalRate: parseInt(formData.customerRetrievalRate),
-        customerRetrievalInterval: parseInt(formData.customerRetrievalInterval),
-        maxTicketCapacity: parseInt(formData.maxTicketCapacity),
-      });
 
+    // Validate all fields
+    const formErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) formErrors[key] = error;
+    });
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+
+    setIsSubmitting(true); // Disable the button while submitting
+
+    try {
+      const response = await updateConfiguration(formData);
       if (response && response.configurationData) {
         setFormData(response.configurationData);
         setSystemConfigured(response.systemConfigured);
@@ -71,6 +87,8 @@ const ConfigurationPage = () => {
         type: "error",
         text: error.response?.data || "Failed to update configuration.",
       });
+    } finally {
+      setIsSubmitting(false); // Re-enable the button after submission
     }
   };
 
@@ -101,62 +119,30 @@ const ConfigurationPage = () => {
         </span>
       </Typography>
       <Box component="form" onSubmit={handleSubmit}>
-        <TextField
-          label="Total Tickets"
-          name="totalTickets"
-          value={formData.totalTickets}
-          onChange={handleChange}
+        {Object.keys(formData).map((key) => (
+          <TextField
+            key={key}
+            label={key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase())}
+            name={key}
+            value={formData[key]}
+            onChange={handleChange}
+            fullWidth
+            required
+            sx={{ marginBottom: 2 }}
+            error={!!errors[key]}
+            helperText={errors[key]}
+          />
+        ))}
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
           fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Ticket Release Rate"
-          name="ticketReleaseRate"
-          value={formData.ticketReleaseRate}
-          onChange={handleChange}
-          fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Ticket Release Interval (ms)"
-          name="ticketReleaseInterval"
-          value={formData.ticketReleaseInterval}
-          onChange={handleChange}
-          fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Customer Retrieval Rate"
-          name="customerRetrievalRate"
-          value={formData.customerRetrievalRate}
-          onChange={handleChange}
-          fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Customer Retrieval Interval (ms)"
-          name="customerRetrievalInterval"
-          value={formData.customerRetrievalInterval}
-          onChange={handleChange}
-          fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Max Ticket Capacity"
-          name="maxTicketCapacity"
-          value={formData.maxTicketCapacity}
-          onChange={handleChange}
-          fullWidth
-          required
-          sx={{ marginBottom: 2 }}
-        />
-        <Button type="submit" variant="contained" color="primary" fullWidth>
-          Update Configuration
+          disabled={isSubmitting} // Button is disabled while submitting
+        >
+          {isSubmitting ? "Updating..." : "Update Configuration"}
         </Button>
       </Box>
     </div>

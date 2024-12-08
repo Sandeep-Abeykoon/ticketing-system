@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import useWebSocket from "../hooks/webSocket";
 import { startSimulation, stopSimulation, getSimulationStatus } from "../dummyApi";
+import { validateField } from "../utils/validation";
 import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
 
 const SimulationPage = () => {
@@ -9,7 +10,8 @@ const SimulationPage = () => {
   const [numberOfVendors, setNumberOfVendors] = useState("");
   const [simulationStatus, setSimulationStatus] = useState(false);
   const [initialTicketAvailability, setInitialTicketAvailability] = useState(0);
-  const [message, setMessage] = useState(null); // Updated to null initially
+  const [message, setMessage] = useState(null);
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [localLogs, setLocalLogs] = useState([]);
   const logContainerRef = useRef(null);
@@ -39,6 +41,18 @@ const SimulationPage = () => {
   }, [logs]);
 
   const handleStart = async () => {
+    // Validate fields
+    const customerError = validateField("numberOfCustomers", numberOfCustomers);
+    const vendorError = validateField("numberOfVendors", numberOfVendors);
+
+    if (customerError || vendorError) {
+      setErrors({
+        numberOfCustomers: customerError,
+        numberOfVendors: vendorError,
+      });
+      return;
+    }
+
     try {
       await startSimulation(Number(numberOfCustomers), Number(numberOfVendors));
       setMessage({ type: "success", text: "Simulation started successfully." });
@@ -97,6 +111,8 @@ const SimulationPage = () => {
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning}
+          error={!!errors.numberOfCustomers}
+          helperText={errors.numberOfCustomers}
         />
         <TextField
           label="Number of Vendors"
@@ -106,6 +122,8 @@ const SimulationPage = () => {
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning}
+          error={!!errors.numberOfVendors}
+          helperText={errors.numberOfVendors}
         />
       </Box>
       
