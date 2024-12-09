@@ -15,6 +15,7 @@ public class ConfigurationService {
     private final SystemConfiguration systemConfiguration;
     private final ObjectMapper objectMapper;
     private final ConfigurationValidationService validationService;
+    private final SimulationService simulationService;
 
     @PostConstruct
     public void loadConfiguration() {
@@ -45,6 +46,9 @@ public class ConfigurationService {
     }
 
     public SystemConfiguration updateSystemConfigData(ConfigurationData newConfigurationData) {
+        if(simulationService.getSimulationStatus()) {
+            throw new IllegalStateException("Configuration cannot be updated while a simulation is already running");
+        }
         // Validate the ConfigurationData before updating
         validationService.validateConfigurationData(newConfigurationData);
 

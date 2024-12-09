@@ -18,12 +18,15 @@ public class SimulationService {
     private final TicketPool ticketPool;
     private final SimulationLogService logService;
     private final SimulationValidationService validationService;
-    private final List<Thread> vendorThreads = new ArrayList<>();;
+    private final List<Thread> vendorThreads = new ArrayList<>();
     private final List<Thread> customerThreads = new ArrayList<>();
     private boolean isSimulationRunning = false;
 
     public void startSimulation(int numberOfVendors, int numberOfCustomers) {
-        validationService.validateSimulationStart(isSimulationRunning, numberOfVendors, numberOfCustomers);
+        if (isSimulationRunning) {
+            throw new IllegalStateException("Simulation is already running");
+        }
+        validationService.validateSimulationStart(numberOfVendors, numberOfCustomers);
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
 

@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -18,31 +17,43 @@ public class SimulationController {
     private final SimulationService simulationService;
 
     @PostMapping("/start")
-    public ResponseEntity<String> startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
+    public ResponseEntity<?> startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
         try {
             simulationService.startSimulation(numberOfVendors, numberOfCustomers);
-            return ResponseEntity.ok("Simulation started");
+            return ResponseEntity.ok("Simulation started successfully.");
+        } catch (IllegalStateException e) {
+            // State-related errors
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // Input validation errors
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Input Error: " + e.getMessage());
         } catch (Exception e) {
+            // Unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to start simulation: " + e.getMessage());
         }
     }
 
     @PostMapping("/stop")
-    public ResponseEntity<String> stopSimulation() {
+    public ResponseEntity<?> stopSimulation() {
         try {
             simulationService.stopSimulation();
-            return ResponseEntity.ok("Simulation stopped");
+            return ResponseEntity.ok("Simulation stopped successfully.");
+        } catch (IllegalStateException e) {
+            // State-related errors
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Failed to stop simulation: " + e.getMessage());
+            // Unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to stop simulation: " + e.getMessage());
         }
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> getSimulationStatus() {
+    public ResponseEntity<?> getSimulationStatus() {
         try {
             Map<String, Object> response = simulationService.getSimulationStatusDetails();
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            // Unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to fetch simulation status: " + e.getMessage()));
         }

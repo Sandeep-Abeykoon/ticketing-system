@@ -10,12 +10,9 @@ public class SimulationValidationService {
 
     private SystemConfiguration systemConfiguration;
 
-    public void validateSimulationStart(boolean simulationStatus, int numberOfVendors, int numberOfCustomers) {
+    public void validateSimulationStart(int numberOfVendors, int numberOfCustomers) {
         if (!systemConfiguration.isSystemConfigured()) {
             throw new IllegalStateException("The system is not configured");
-        }
-        if (simulationStatus) {
-            throw new IllegalStateException("Simulation is already running");
         }
         if (numberOfVendors <= 0) {
             throw new IllegalArgumentException("Number of vendors must be greater than 0");

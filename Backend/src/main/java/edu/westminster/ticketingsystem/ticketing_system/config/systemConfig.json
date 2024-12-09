@@ -1,8 +1,8 @@
 {
-  "totalTickets" : 0,
+  "totalTickets" : 100,
   "ticketReleaseRate" : 5,
-  "ticketReleaseInterval" : 5000,
-  "customerRetrievalRate" : 4,
-  "customerRetrievalInterval" : 5000,
-  "maxTicketCapacity" : 100
+  "ticketReleaseInterval" : 500,
+  "customerRetrievalRate" : 3,
+  "customerRetrievalInterval" : 500,
+  "maxTicketCapacity" : 500
 }
