@@ -15,6 +15,7 @@ const SimulationPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [logs, setLogs] = useState([]); // Manage displayed logs
+  const [isSubmitting, setIsSubmitting] = useState(false); // Disable buttons during submission
   const logContainerRef = useRef(null);
 
   useEffect(() => {
@@ -70,26 +71,39 @@ const SimulationPage = () => {
       return;
     }
 
+    setIsSubmitting(true); // Disable buttons while submitting
+    setLogs([]); // Clear the logs
+
     try {
       await startSimulation(Number(numberOfCustomers), Number(numberOfVendors));
       setMessage({ type: "success", text: "Simulation started successfully." });
       setSimulationStatus(true);
-      dismissMessageAfterDelay();
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to start simulation." });
-      dismissMessageAfterDelay();
+      console.error("Failed to start simulation:", error);
+      setMessage({
+        type: "error",
+        text: error.response?.data || "Failed to start simulation.",
+      });
+    } finally {
+      setIsSubmitting(false); // Re-enable buttons after submission
     }
   };
 
   const handleStop = async () => {
+    setIsSubmitting(true); // Disable buttons while submitting
+
     try {
       await stopSimulation();
       setMessage({ type: "success", text: "Simulation stopped successfully." });
       setSimulationStatus(false);
-      dismissMessageAfterDelay();
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to stop simulation." });
-      dismissMessageAfterDelay();
+      console.error("Failed to stop simulation:", error);
+      setMessage({
+        type: "error",
+        text: error.response?.data || "Failed to stop simulation.",
+      });
+    } finally {
+      setIsSubmitting(false); // Re-enable buttons after submission
     }
   };
 
@@ -128,7 +142,7 @@ const SimulationPage = () => {
           onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning}
+          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
           error={!!errors.numberOfCustomers}
           helperText={errors.numberOfCustomers}
         />
@@ -140,7 +154,7 @@ const SimulationPage = () => {
           onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning}
+          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
           error={!!errors.numberOfVendors}
           helperText={errors.numberOfVendors}
         />
@@ -151,17 +165,17 @@ const SimulationPage = () => {
           variant="contained"
           color="success"
           onClick={handleStart}
-          disabled={isSimulationRunning}
+          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
         >
-          Start Simulation
+          {isSubmitting ? "Starting..." : "Start Simulation"}
         </Button>
         <Button
           variant="contained"
           color="error"
           onClick={handleStop}
-          disabled={!isSimulationRunning}
+          disabled={!isSimulationRunning || isSubmitting} // Disable if not running or during submission
         >
-          Stop Simulation
+          {isSubmitting ? "Stopping..." : "Stop Simulation"}
         </Button>
         <Button
           variant="contained"

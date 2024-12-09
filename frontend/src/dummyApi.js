@@ -23,7 +23,6 @@ export const updateConfiguration = async (config) => {
 
 export const getSimulationStatus = async () => {
   const response = await axios.get(`${API_URL}/simulation/status`);
-  console.log(response.data);
   return response.data;
 };
 
