@@ -14,8 +14,8 @@ public class ConfigurationService {
     private final FileService fileService;
     private final SystemConfiguration systemConfiguration;
     private final ObjectMapper objectMapper;
+    private final ConfigurationValidationService validationService;
 
-    // Automatically load configuration after Spring context initialization
     @PostConstruct
     public void loadConfiguration() {
         boolean loaded = fileService.readConfiguration(systemConfiguration.getConfigurationData());
@@ -27,8 +27,6 @@ public class ConfigurationService {
         }
     }
 
-
-    // Save configuration to JSON file
     public void saveConfiguration() {
         boolean saved = fileService.writeConfiguration(systemConfiguration.getConfigurationData());
         if (saved) {
@@ -47,13 +45,17 @@ public class ConfigurationService {
     }
 
     public SystemConfiguration updateSystemConfigData(ConfigurationData newConfigurationData) {
-        //Todo Validate the ConfigurationData before setting
-        this.systemConfiguration.setSystemConfigured(true);
+        // Validate the ConfigurationData before updating
+        validationService.validateConfigurationData(newConfigurationData);
+
         try {
-            objectMapper.readerForUpdating(systemConfiguration.getConfigurationData()).readValue(objectMapper.writeValueAsString(newConfigurationData));
+            objectMapper.readerForUpdating(systemConfiguration.getConfigurationData())
+                    .readValue(objectMapper.writeValueAsString(newConfigurationData));
             saveConfiguration();
+            this.systemConfiguration.setSystemConfigured(true);
         } catch (Exception e) {
-            System.out.println("Failed to update data");
+            System.out.println("Failed to update data: " + e.getMessage());
+            throw new RuntimeException("Failed to update configuration data", e);
         }
         return this.systemConfiguration;
     }

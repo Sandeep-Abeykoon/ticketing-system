@@ -3,6 +3,7 @@ package edu.westminster.ticketingsystem.ticketing_system.component;
 import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import edu.westminster.ticketingsystem.ticketing_system.model.Ticket;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -10,16 +11,11 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class TicketPool {
-    private final List<Ticket> tickets;
+    private final List<Ticket> tickets = Collections.synchronizedList(new ArrayList<>());
     private final SystemConfiguration systemConfiguration;
     private final SimulationLogService logService;
-
-    public TicketPool(SystemConfiguration systemConfiguration, SimulationLogService logService) {
-        this.systemConfiguration = systemConfiguration;
-        this.logService = logService;
-        this.tickets = Collections.synchronizedList(new ArrayList<>());
-    }
 
     public synchronized boolean addTickets(List<Ticket> ticketsToAdd) {
         int maxCapacity = systemConfiguration.getConfigurationData().getMaxTicketCapacity();

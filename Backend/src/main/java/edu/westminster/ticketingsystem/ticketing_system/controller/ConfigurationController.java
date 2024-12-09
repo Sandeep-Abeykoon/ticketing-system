@@ -8,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @AllArgsConstructor
 @CrossOrigin
@@ -20,8 +18,14 @@ public class ConfigurationController {
     private final SimulationService simulationService;
 
     @GetMapping
-    public SystemConfiguration getConfiguration() {
-        return configurationService.getConfiguration();
+    public ResponseEntity<?> getConfiguration() {
+        try {
+            SystemConfiguration config = configurationService.getConfiguration();
+            return ResponseEntity.ok(config);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve configuration: " + e.getMessage());
+        }
     }
 
     @PutMapping
@@ -35,8 +39,14 @@ public class ConfigurationController {
     }
 
     @GetMapping("/status")
-    public boolean getSystemConfigStatus() {
-        return configurationService.getSystemConfigStatus();
+    public ResponseEntity<?> getSystemConfigStatus() {
+        try {
+            boolean status = configurationService.getSystemConfigStatus();
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to retrieve system configuration status: " + e.getMessage());
+        }
     }
 
 }
