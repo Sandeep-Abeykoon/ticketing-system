@@ -9,11 +9,11 @@ const Header = () => {
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Ticketing System
         </Typography>
-        <Button color="inherit" component={Link} to="/vendor">
-          Vendor
+        <Button color="inherit" component={Link} to="/config">
+          Configuration
         </Button>
-        <Button color="inherit" component={Link} to="/customer">
-          Customer
+        <Button color="inherit" component={Link} to="/simulation">
+          Simulation
         </Button>
       </Toolbar>
     </AppBar>

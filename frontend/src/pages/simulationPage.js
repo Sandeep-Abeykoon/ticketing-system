@@ -1,65 +1,56 @@
-import React, { useEffect, useState, useRef } from "react";
-import useWebSocket from "../hooks/webSocket";
-import { startSimulation, stopSimulation, getSimulationStatus } from "../dummyApi";
+import React, { useContext, useRef, useEffect } from "react";
+import { WebSocketContext } from "../components/context/WebSocketContext";
+import { startSimulation, stopSimulation } from "../dummyApi";
 import { validateField } from "../utils/validation";
 import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
 
 const SimulationPage = () => {
-  const { logs: wsLogs, ticketAvailability: wsTicketAvailability, simulationStatus: wsSimulationStatus } =
-    useWebSocket();
-  const [numberOfCustomers, setNumberOfCustomers] = useState("");
-  const [numberOfVendors, setNumberOfVendors] = useState("");
-  const [simulationStatus, setSimulationStatus] = useState(false);
-  const [initialTicketAvailability, setInitialTicketAvailability] = useState(0);
-  const [message, setMessage] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [logs, setLogs] = useState([]); // Manage displayed logs
-  const [isSubmitting, setIsSubmitting] = useState(false); // Disable buttons during submission
+  const {
+    logs,
+    setLogs,
+    ticketAvailability,
+    setTicketAvailability,
+    simulationStatus,
+    numberOfCustomers,
+    setNumberOfCustomers,
+    numberOfVendors,
+    setNumberOfVendors,
+    isLoading,
+  } = useContext(WebSocketContext);
+
+  const [message, setMessage] = React.useState(null);
+  const [errors, setErrors] = React.useState({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const logContainerRef = useRef(null);
+  const [isScrolled, setIsScrolled] = React.useState(false);
 
+  // Scroll to the bottom when new logs arrive unless the user has manually scrolled up
   useEffect(() => {
-    const fetchInitialStatus = async () => {
-      try {
-        const response = await getSimulationStatus();
-        setSimulationStatus(response.isRunning);
-        setInitialTicketAvailability(response.ticketCount);
-        setNumberOfVendors(response.numberOfVendors?.toString() || "");
-        setNumberOfCustomers(response.numberOfCustomers?.toString() || "");
-      } catch (error) {
-        console.error("Failed to fetch simulation status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInitialStatus();
-  }, []);
-
-  // Sync WebSocket logs with the displayed logs
-  useEffect(() => {
-    setLogs(wsLogs);
-  }, [wsLogs]);
-
-  useEffect(() => {
-    if (logContainerRef.current) {
+    if (logContainerRef.current && !isScrolled) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [logs, isScrolled]);
 
-  // Real-time validation on input change
+  const handleScroll = () => {
+    if (logContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = logContainerRef.current;
+      setIsScrolled(scrollTop + clientHeight < scrollHeight - 50);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const parsedValue = value === "" ? "" : parseInt(value, 10);
     const error = validateField(name, parsedValue);
 
     setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+
     if (name === "numberOfCustomers") setNumberOfCustomers(parsedValue);
     if (name === "numberOfVendors") setNumberOfVendors(parsedValue);
   };
 
   const handleStart = async () => {
-    // Check for validation errors before starting
     const customerError = validateField("numberOfCustomers", numberOfCustomers);
     const vendorError = validateField("numberOfVendors", numberOfVendors);
 
@@ -71,13 +62,12 @@ const SimulationPage = () => {
       return;
     }
 
-    setIsSubmitting(true); // Disable buttons while submitting
-    setLogs([]); // Clear the logs
+    setIsSubmitting(true);
+    setLogs([]); // Clear logs when starting the simulation
 
     try {
       await startSimulation(Number(numberOfCustomers), Number(numberOfVendors));
       setMessage({ type: "success", text: "Simulation started successfully." });
-      setSimulationStatus(true);
     } catch (error) {
       console.error("Failed to start simulation:", error);
       setMessage({
@@ -85,17 +75,16 @@ const SimulationPage = () => {
         text: error.response?.data || "Failed to start simulation.",
       });
     } finally {
-      setIsSubmitting(false); // Re-enable buttons after submission
+      setIsSubmitting(false);
     }
   };
 
   const handleStop = async () => {
-    setIsSubmitting(true); // Disable buttons while submitting
+    setIsSubmitting(true);
 
     try {
       await stopSimulation();
       setMessage({ type: "success", text: "Simulation stopped successfully." });
-      setSimulationStatus(false);
     } catch (error) {
       console.error("Failed to stop simulation:", error);
       setMessage({
@@ -103,24 +92,28 @@ const SimulationPage = () => {
         text: error.response?.data || "Failed to stop simulation.",
       });
     } finally {
-      setIsSubmitting(false); // Re-enable buttons after submission
+      setIsSubmitting(false);
     }
   };
 
   const handleClearLogs = () => {
-    setLogs([]); // Clear the displayed logs
+    setLogs([]); // Clear logs
     setMessage({ type: "success", text: "Logs cleared successfully!" });
     dismissMessageAfterDelay();
   };
 
-  const dismissMessageAfterDelay = () => {
-    setTimeout(() => setMessage(null), 3000); // Message disappears after 3 seconds
+  const handleReset = () => {
+    setNumberOfCustomers(0);
+    setNumberOfVendors(0);
+    setTicketAvailability(0);
+    setLogs([]);
+    setMessage({ type: "success", text: "Simulation reset successfully!" });
+    dismissMessageAfterDelay();
   };
 
-  const isSimulationRunning =
-    wsSimulationStatus !== null ? wsSimulationStatus : simulationStatus;
-  const currentTicketAvailability =
-    wsTicketAvailability !== null ? wsTicketAvailability : initialTicketAvailability;
+  const dismissMessageAfterDelay = () => {
+    setTimeout(() => setMessage(null), 3000);
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -130,19 +123,19 @@ const SimulationPage = () => {
     <div style={{ width: "60%", margin: "auto", marginTop: 20 }}>
       <h1>Simulation Dashboard</h1>
       {message && <Alert severity={message.type} sx={{ mb: 2 }}>{message.text}</Alert>}
-      <Typography variant="h6">Simulation Status: {isSimulationRunning ? "Running" : "Stopped"}</Typography>
-      <Typography variant="h6" sx={{ mb: 4 }}>Available Tickets: {currentTicketAvailability}</Typography>
+      <Typography variant="h6">Simulation Status: {simulationStatus ? "Running" : "Stopped"}</Typography>
+      <Typography variant="h6" sx={{ mb: 4 }}>Available Tickets: {ticketAvailability || 0}</Typography>
       
       <Box component="form" sx={{ mb: 2 }}>
         <TextField
           label="Number of Customers"
           name="numberOfCustomers"
           type="number"
-          value={numberOfCustomers}
+          value={numberOfCustomers || ""}
           onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
+          disabled={simulationStatus || isSubmitting}
           error={!!errors.numberOfCustomers}
           helperText={errors.numberOfCustomers}
         />
@@ -150,11 +143,11 @@ const SimulationPage = () => {
           label="Number of Vendors"
           name="numberOfVendors"
           type="number"
-          value={numberOfVendors}
+          value={numberOfVendors || ""}
           onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
-          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
+          disabled={simulationStatus || isSubmitting}
           error={!!errors.numberOfVendors}
           helperText={errors.numberOfVendors}
         />
@@ -165,7 +158,7 @@ const SimulationPage = () => {
           variant="contained"
           color="success"
           onClick={handleStart}
-          disabled={isSimulationRunning || isSubmitting} // Disable during running or submission
+          disabled={simulationStatus || isSubmitting}
         >
           {isSubmitting ? "Starting..." : "Start Simulation"}
         </Button>
@@ -173,7 +166,7 @@ const SimulationPage = () => {
           variant="contained"
           color="error"
           onClick={handleStop}
-          disabled={!isSimulationRunning || isSubmitting} // Disable if not running or during submission
+          disabled={!simulationStatus || isSubmitting}
         >
           {isSubmitting ? "Stopping..." : "Stop Simulation"}
         </Button>
@@ -184,10 +177,19 @@ const SimulationPage = () => {
         >
           Clear Logs
         </Button>
+        <Button
+          variant="contained"
+          color="warning"
+          onClick={handleReset}
+          disabled={simulationStatus || isSubmitting}
+        >
+          Reset
+        </Button>
       </Box>
       
       <Paper
         ref={logContainerRef}
+        onScroll={handleScroll}
         style={{
           height: "200px",
           overflowY: "scroll",
