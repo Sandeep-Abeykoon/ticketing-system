@@ -5,7 +5,8 @@ import { validateField } from "../utils/validation";
 import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
 
 const SimulationPage = () => {
-  const { logs, ticketAvailability: wsTicketAvailability, simulationStatus: wsSimulationStatus } = useWebSocket();
+  const { logs: wsLogs, ticketAvailability: wsTicketAvailability, simulationStatus: wsSimulationStatus } =
+    useWebSocket();
   const [numberOfCustomers, setNumberOfCustomers] = useState("");
   const [numberOfVendors, setNumberOfVendors] = useState("");
   const [simulationStatus, setSimulationStatus] = useState(false);
@@ -13,7 +14,7 @@ const SimulationPage = () => {
   const [message, setMessage] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [localLogs, setLocalLogs] = useState([]);
+  const [logs, setLogs] = useState([]); // Manage displayed logs
   const logContainerRef = useRef(null);
 
   useEffect(() => {
@@ -34,14 +35,30 @@ const SimulationPage = () => {
     fetchInitialStatus();
   }, []);
 
+  // Sync WebSocket logs with the displayed logs
+  useEffect(() => {
+    setLogs(wsLogs);
+  }, [wsLogs]);
+
   useEffect(() => {
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [logs]);
 
+  // Real-time validation on input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const parsedValue = value === "" ? "" : parseInt(value, 10);
+    const error = validateField(name, parsedValue);
+
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+    if (name === "numberOfCustomers") setNumberOfCustomers(parsedValue);
+    if (name === "numberOfVendors") setNumberOfVendors(parsedValue);
+  };
+
   const handleStart = async () => {
-    // Validate fields
+    // Check for validation errors before starting
     const customerError = validateField("numberOfCustomers", numberOfCustomers);
     const vendorError = validateField("numberOfVendors", numberOfVendors);
 
@@ -77,7 +94,7 @@ const SimulationPage = () => {
   };
 
   const handleClearLogs = () => {
-    setLocalLogs([]);
+    setLogs([]); // Clear the displayed logs
     setMessage({ type: "success", text: "Logs cleared successfully!" });
     dismissMessageAfterDelay();
   };
@@ -105,9 +122,10 @@ const SimulationPage = () => {
       <Box component="form" sx={{ mb: 2 }}>
         <TextField
           label="Number of Customers"
+          name="numberOfCustomers"
           type="number"
           value={numberOfCustomers}
-          onChange={(e) => setNumberOfCustomers(e.target.value)}
+          onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning}
@@ -116,9 +134,10 @@ const SimulationPage = () => {
         />
         <TextField
           label="Number of Vendors"
+          name="numberOfVendors"
           type="number"
           value={numberOfVendors}
-          onChange={(e) => setNumberOfVendors(e.target.value)}
+          onChange={handleChange}
           fullWidth
           sx={{ mb: 2 }}
           disabled={isSimulationRunning}
@@ -164,7 +183,7 @@ const SimulationPage = () => {
         }}
       >
         <Typography variant="h6" sx={{ mb: 1 }}>Logs</Typography>
-        {(localLogs.length > 0 ? localLogs : logs).map((log, index) => (
+        {logs.map((log, index) => (
           <Typography key={index} variant="body2" sx={{ mt: 1 }}>
             {log}
           </Typography>
