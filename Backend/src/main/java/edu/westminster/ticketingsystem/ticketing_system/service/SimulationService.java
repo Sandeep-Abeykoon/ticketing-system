@@ -3,45 +3,29 @@ package edu.westminster.ticketingsystem.ticketing_system.service;
 import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
 import edu.westminster.ticketingsystem.ticketing_system.model.Customer;
 import edu.westminster.ticketingsystem.ticketing_system.model.Vendor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor // This annotation will create the constructor with only dependency injected fields (1 - 4 here)
 public class SimulationService {
     private final ParticipantFactory participantFactory;
     private final TicketPool ticketPool;
     private final SimulationLogService logService;
-    private final ConfigurationService configurationService;
-    private final List<Thread> vendorThreads;
-    private final List<Thread> customerThreads;
-    private boolean isSimulationRunning;
-
-    public SimulationService(ParticipantFactory participantFactory,
-                             TicketPool ticketPool,
-                             SimulationLogService logService,
-                             ConfigurationService configurationService){
-        this.participantFactory = participantFactory;
-        this.ticketPool = ticketPool;
-        this.logService = logService;
-        this.configurationService = configurationService;
-        this.vendorThreads = new ArrayList<>();
-        this.customerThreads = new ArrayList<>();
-        this.isSimulationRunning = false;
-    }
+    private final SimulationValidationService validationService;
+    private final List<Thread> vendorThreads = new ArrayList<>();;
+    private final List<Thread> customerThreads = new ArrayList<>();
+    private boolean isSimulationRunning = false;
 
     public void startSimulation(int numberOfVendors, int numberOfCustomers) {
-        if (!configurationService.getSystemConfigStatus()) {
-            throw new IllegalStateException("The system is not configured");
-        }
-
-        if (isSimulationRunning) {
-            throw new IllegalStateException("Simulation is already running");
-        }
+        validationService.validateSimulationStart(isSimulationRunning, numberOfVendors, numberOfCustomers);
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
-
 
         /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
            thread starting of vendor and customers
@@ -89,11 +73,12 @@ public class SimulationService {
         return isSimulationRunning;
     }
 
-    public int getNumberOfVendors() {
-        return vendorThreads.size();
-    }
-
-    public int getNumberOfCustomers() {
-        return customerThreads.size();
+    public Map<String, Object> getSimulationStatusDetails() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("isRunning", getSimulationStatus());
+        response.put("ticketCount", ticketPool.getTicketCount());
+        response.put("numberOfVendors", vendorThreads.size());
+        response.put("numberOfCustomers", customerThreads.size());
+        return response;
     }
 }

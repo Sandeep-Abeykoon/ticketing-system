@@ -1,6 +1,5 @@
 package edu.westminster.ticketingsystem.ticketing_system.model;
 
-import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 

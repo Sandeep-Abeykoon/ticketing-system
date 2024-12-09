@@ -1,8 +1,6 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
 
-import edu.westminster.ticketingsystem.ticketing_system.service.ConfigurationService;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
-import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +16,6 @@ import java.util.Map;
 public class SimulationController {
 
     private final SimulationService simulationService;
-    private  final TicketService ticketService;
 
     @PostMapping("/start")
     public ResponseEntity<String> startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
@@ -42,11 +39,12 @@ public class SimulationController {
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getSimulationStatus() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("isRunning", simulationService.getSimulationStatus());
-        response.put("ticketCount", ticketService.geTicketCount());
-        response.put("numberOfVendors", simulationService.getNumberOfVendors());
-        response.put("numberOfCustomers", simulationService.getNumberOfCustomers());
-        return ResponseEntity.ok(response);
+        try {
+            Map<String, Object> response = simulationService.getSimulationStatusDetails();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch simulation status: " + e.getMessage()));
+        }
     }
 }
