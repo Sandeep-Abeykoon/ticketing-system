@@ -13,24 +13,31 @@ public class SimulationService {
     private final ParticipantFactory participantFactory;
     private final TicketPool ticketPool;
     private final SimulationLogService logService;
+    private final ConfigurationService configurationService;
     private final List<Thread> vendorThreads;
     private final List<Thread> customerThreads;
     private boolean isSimulationRunning;
 
     public SimulationService(ParticipantFactory participantFactory,
                              TicketPool ticketPool,
-                             SimulationLogService logService){
+                             SimulationLogService logService,
+                             ConfigurationService configurationService){
         this.participantFactory = participantFactory;
         this.ticketPool = ticketPool;
         this.logService = logService;
+        this.configurationService = configurationService;
         this.vendorThreads = new ArrayList<>();
         this.customerThreads = new ArrayList<>();
         this.isSimulationRunning = false;
     }
 
     public void startSimulation(int numberOfVendors, int numberOfCustomers) {
+        if (!configurationService.getSystemConfigStatus()) {
+            throw new IllegalStateException("The system is not configured");
+        }
+
         if (isSimulationRunning) {
-            throw new IllegalStateException(("Simulation is already running"));
+            throw new IllegalStateException("Simulation is already running");
         }
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
@@ -62,6 +69,10 @@ public class SimulationService {
     }
 
     public void stopSimulation() {
+        if (!isSimulationRunning) {
+            throw new IllegalStateException("No currently any simulation running");
+        }
+
         vendorThreads.forEach(Thread::interrupt);
         customerThreads.forEach(Thread::interrupt);
 

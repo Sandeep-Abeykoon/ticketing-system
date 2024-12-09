@@ -1,5 +1,6 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
 
+import edu.westminster.ticketingsystem.ticketing_system.service.ConfigurationService;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 import lombok.AllArgsConstructor;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class SimulationController {
             simulationService.startSimulation(numberOfVendors, numberOfCustomers);
             return ResponseEntity.ok("Simulation started");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to start simulation " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to start simulation: " + e.getMessage());
         }
     }
 
