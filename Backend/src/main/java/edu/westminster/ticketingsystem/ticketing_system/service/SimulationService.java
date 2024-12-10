@@ -29,6 +29,8 @@ public class SimulationService {
         validationService.validateSimulationStart(numberOfVendors, numberOfCustomers);
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
+        logService.sendLog("Simulation started with " + numberOfVendors + " number of vendors and " +
+                numberOfCustomers + " number of customers");
 
         /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
            thread starting of vendor and customers
@@ -40,8 +42,8 @@ public class SimulationService {
                 Vendor vendor = participantFactory.createVendor(vendorId);
                 Thread vendorThread = new Thread(vendor);
                 vendorThreads.add(vendorThread);
-                vendorThread.start();
                 logService.sendLog("Vendor " + vendorId + " started");
+                vendorThread.start();
             }
 
             if (i < numberOfCustomers) {
@@ -49,8 +51,8 @@ public class SimulationService {
                 Customer customer = participantFactory.createCustomer(customerId);
                 Thread customerThread = new Thread(customer);
                 customerThreads.add(customerThread);
-                customerThread.start();
                 logService.sendLog("Customer " + customerId + " started");
+                customerThread.start();
             }
         }
     }

@@ -11,6 +11,7 @@ export const WebSocketProvider = ({ children }) => {
   const [numberOfCustomers, setNumberOfCustomers] = useState(null);
   const [numberOfVendors, setNumberOfVendors] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState("connecting"); // New state for connection status
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -33,7 +34,8 @@ export const WebSocketProvider = ({ children }) => {
       brokerURL: "ws://localhost:8080/ws-status",
       reconnectDelay: 5000,
       onConnect: () => {
-        console.log("WebSocket connected");
+        setConnectionStatus("connected"); 
+        fetchInitialData();
 
         client.subscribe("/topic/simulation-status", (message) => {
           const isRunning = JSON.parse(message.body);
@@ -60,8 +62,16 @@ export const WebSocketProvider = ({ children }) => {
           setNumberOfVendors(vendors);
         });
       },
-      onDisconnect: () => {
-        console.log("WebSocket disconnected");
+      onStompError: (error) => {
+        console.error("STOMP error:", error);
+        setConnectionStatus("not connected"); 
+      },
+      onWebSocketClose: () => {
+        setConnectionStatus("not connected");
+      },
+      onWebSocketError: (error) => {
+        console.error("WebSocket error:", error);
+        setConnectionStatus("not connected"); 
       },
     });
 
@@ -85,6 +95,7 @@ export const WebSocketProvider = ({ children }) => {
         numberOfVendors,
         setNumberOfVendors,
         isLoading,
+        connectionStatus, 
       }}
     >
       {children}
