@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -19,81 +20,108 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TicketPool {
     private final SystemConfiguration systemConfiguration;
     private final SimulationLogService logService;
-    // Collections.synchronized list is not needed as ReentrantLock is used (otherwise it's redundant)
-    private final List<Ticket> tickets = new ArrayList<>(); // Ticket pool array
-    private final Lock lock = new ReentrantLock(true); // Fair lock for FIFO behaviour
-    private final Condition condition = lock.newCondition(); // Condition for waiting threads
+    private final List<Ticket> tickets = new ArrayList<>();
+    private final Lock lock = new ReentrantLock(true);
+    private final Condition condition = lock.newCondition();
     private final PriorityQueue<TicketRetrievalRequest> requestQueue = new PriorityQueue<>();
     private int totalTicketsRetrieved = 0;
     private int totalTicketsAdded = 0;
+    private int totalVIPRetrievals = 0;
+    private int totalNormalRetrievals = 0;
 
-    // Synchronized keyword is not needed as ReentrantLock is used
     public boolean addTickets(List<Ticket> ticketsToAdd) {
         lock.lock();
         int ticketsToAddSize = ticketsToAdd.size();
         try {
             int maxCapacity = systemConfiguration.getConfigurationData().getMaxTicketCapacity();
             if (tickets.size() + ticketsToAddSize > maxCapacity) {
-                logService.sendLog("Cannot add tickets: Pool has no space");
                 return false;
             }
             tickets.addAll(ticketsToAdd);
             totalTicketsAdded += ticketsToAddSize;
-            logService.sendTicketData(tickets.size(), totalTicketsAdded, totalTicketsRetrieved);
-            condition.signalAll(); // Notify waiting threads (VIPs or normals)
+            logService.sendStructuredLog("TICKET_ADD", Map.of(
+                    "ticketsAdded", ticketsToAddSize,
+                    "availableTickets", tickets.size(),
+                    "totalTicketsAdded", totalTicketsAdded,
+                    "totalTicketsRetrieved", totalTicketsRetrieved,
+                    "totalVIPRetrievals", totalVIPRetrievals,
+                    "totalNormalRetrievals", totalNormalRetrievals
+            ));
+            condition.signalAll();
             return true;
-        } catch (Exception e) {
-            logService.sendLog("Error while adding tickets: " + e.getMessage());
-            return false;
         } finally {
             lock.unlock();
         }
     }
 
-    // Synchronized keyword is not needed as ReentrantLock is used
-    public void retrieveTickets(TicketRetrievalRequest request) {
+    public void retrieveTickets(TicketRetrievalRequest request) throws InterruptedException {
         lock.lock();
         try {
             requestQueue.add(request);
+            // tickets.size() < request.getTicketsPerRetrieval() is essential for priority for waiting for tickets to get added
             while (requestQueue.peek() != request || tickets.size() < request.getTicketsPerRetrieval()) {
                 condition.await();
             }
 
             requestQueue.poll();
             if (tickets.size() < request.getTicketsPerRetrieval()) {
-                logService.sendLog((request.isVIP() ? "VIP " : "") + "Customer " + request.getCustomerId() + " could not retrieve tickets");
+                logService.sendStructuredLog("TICKET_RETRIEVAL_FAILED", Map.of(
+                        "customerId", request.getCustomerId(),
+                        "customerType", request.isVIP() ? "VIP" : "Normal",
+                        "reason", "Insufficient tickets"
+                ));
                 return;
             }
 
-            tickets.subList(0, request.getTicketsPerRetrieval()).clear();
-            logService.sendLog((request.isVIP() ? "VIP " : "") + "Customer " + request.getCustomerId() + " retrieved " + request.getTicketsPerRetrieval() + " tickets");
+            if (request.getTicketsPerRetrieval() > 0) {
+                tickets.subList(0, request.getTicketsPerRetrieval()).clear();
+            }
+
             totalTicketsRetrieved += request.getTicketsPerRetrieval();
-            logService.sendTicketData(tickets.size(), totalTicketsAdded, totalTicketsRetrieved);
+            if (request.isVIP()) {
+                totalVIPRetrievals += request.getTicketsPerRetrieval();
+            } else {
+                totalNormalRetrievals += request.getTicketsPerRetrieval();
+            }
+            logService.sendStructuredLog("TICKET_RETRIEVAL", Map.of(
+                    "customerId", request.getCustomerId(),
+                    "customerType", request.isVIP() ? "VIP" : "Normal",
+                    "retrievedTickets", request.getTicketsPerRetrieval(),
+                    "availableTickets", tickets.size(),
+                    "totalTicketsAdded", totalTicketsAdded,
+                    "totalTicketsRetrieved", totalTicketsRetrieved,
+                    "totalVIPRetrievals", totalVIPRetrievals,
+                    "totalNormalRetrievals", totalNormalRetrievals
+            ));
             condition.signalAll();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logService.sendLog((request.isVIP() ? "VIP " : "") + "Customer " + request.getCustomerId() + " was interrupted.");
         } finally {
             lock.unlock();
         }
     }
 
-    // Synchronized keyword is not needed as ReentrantLock is used
     public void clearPoolData() {
         lock.lock();
         try {
-            tickets.clear(); // Clear all tickets in the pool
-            requestQueue.clear(); // Clear all pending requests
-            condition.signalAll(); // Notify all waiting threads
+            logService.sendStructuredLog("POOL_CLEARED", Map.of(
+                    "availableTickets", 0,
+                    "totalTicketsAdded", totalTicketsAdded,
+                    "totalTicketsRetrieved", totalTicketsRetrieved,
+                    "totalVIPRetrievals", totalVIPRetrievals,
+                    "totalNormalRetrievals", totalNormalRetrievals
+            ));
+
+            tickets.clear();
+            requestQueue.clear();
             totalTicketsAdded = 0;
             totalTicketsRetrieved = 0;
+            totalVIPRetrievals = 0;
+            totalNormalRetrievals = 0;
+            condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-
-    // Synchronized keyword is not needed as ReentrantLock is used
     public int getTicketCount() {
         lock.lock();
         try {
@@ -120,5 +148,22 @@ public class TicketPool {
             lock.unlock();
         }
     }
-}
 
+    public int getTotalVIPRetrievals() {
+        lock.lock();
+        try {
+            return totalVIPRetrievals;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getTotalNormalRetrievals() {
+        lock.lock();
+        try {
+            return totalNormalRetrievals;
+        } finally {
+            lock.unlock();
+        }
+    }
+}

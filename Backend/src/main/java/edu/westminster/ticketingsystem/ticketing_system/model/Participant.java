@@ -4,6 +4,8 @@ import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogSer
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 import lombok.AllArgsConstructor;
 
+import java.util.Map;
+
 @AllArgsConstructor
 public abstract class Participant implements Runnable {
     protected final String id;
@@ -19,9 +21,17 @@ public abstract class Participant implements Runnable {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                logService.sendLog(getType() + " " + id + " was interrupted");
+                logService.sendStructuredLog("THREAD_INTERRUPTED", Map.of(
+                        "id", id,
+                        "type", getType(),
+                        "reason", "Thread interrupted"
+                ));
             } catch (Exception e) {
-                //Todo Error Logging
+                logService.sendStructuredLog("PARTICIPANT_ERROR", Map.of(
+                        "id", id,
+                        "type", getType(),
+                        "errorMessage", e.getMessage()
+                ));
             }
         }
     }

@@ -18,44 +18,65 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, PointElement, LineElement, Tooltip, Legend);
 
 const AnalyticsDashboard = () => {
-  const { simulationStatus = false } = useContext(WebSocketContext);
+  const {
+    logs,
+    simulationStatus,
+    availableTickets,
+    totalTicketsAdded,
+    totalTicketsRetrieved,
+    totalVIPRetrievals,
+    totalNormalRetrievals,
+  } = useContext(WebSocketContext);
 
-  // Dummy data for ticket details
-  const ticketData = {
-    availableTickets: 150,
-    totalTicketsAdded: 500,
-    totalTicketsRetrieved: 350,
-    salesByType: {
-      normal: 250,
-      vip: 100,
-    },
-  };
+  const [groupedSales, setGroupedSales] = useState([]);
 
-  const [realTimeSales, setRealTimeSales] = useState([
-    { time: "10:00 AM", sales: 5 },
-    { time: "10:01 AM", sales: 8 },
-  ]);
-
-  // Simulate real-time data updates
+  // Process logs to extract VIP and Normal sales for line chart
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeSales((prev) => [
-        ...prev,
-        { time: new Date().toLocaleTimeString(), sales: Math.floor(Math.random() * 20) },
-      ]);
-    }, 3000);
+    const salesData = {};
 
-    return () => clearInterval(interval);
-  }, []);
+    logs.forEach((log) => {
+      const { timestamp, action, details } = log;
+      if (action === "TICKET_RETRIEVAL") {
+        const time = new Date(timestamp);
+        const minuteKey = `${time.getHours()}:${time.getMinutes()}`;
+
+        if (!salesData[minuteKey]) {
+          salesData[minuteKey] = { normal: 0, vip: 0 };
+        }
+
+        if (details.customerType === "VIP") {
+          salesData[minuteKey].vip += details.retrievedTickets;
+        } else {
+          salesData[minuteKey].normal += details.retrievedTickets;
+        }
+      }
+    });
+
+    const grouped = Object.entries(salesData).map(([time, sales]) => ({
+      time,
+      vip: sales.vip,
+      normal: sales.normal,
+    }));
+
+    setGroupedSales(grouped);
+  }, [logs]);
 
   const lineChartData = {
-    labels: realTimeSales.map((point) => point.time),
+    labels: groupedSales.map((point) => point.time),
     datasets: [
       {
-        label: "Real-Time Sales",
-        data: realTimeSales.map((point) => point.sales),
-        borderColor: "#3f51b5",
-        backgroundColor: "rgba(63, 81, 181, 0.1)",
+        label: "VIP Sales",
+        data: groupedSales.map((point) => point.vip),
+        borderColor: "#FFC107",
+        backgroundColor: "rgba(255, 193, 7, 0.1)",
+        tension: 0.3,
+        fill: true,
+      },
+      {
+        label: "Normal Sales",
+        data: groupedSales.map((point) => point.normal),
+        borderColor: "#4CAF50",
+        backgroundColor: "rgba(76, 175, 80, 0.1)",
         tension: 0.3,
         fill: true,
       },
@@ -67,8 +88,8 @@ const AnalyticsDashboard = () => {
     datasets: [
       {
         label: "Sales",
-        data: [ticketData.salesByType.normal, ticketData.salesByType.vip],
-        backgroundColor: ["#4caf50", "#ff5722"],
+        data: [totalNormalRetrievals, totalVIPRetrievals],
+        backgroundColor: ["#4CAF50", "#FF5722"],
       },
     ],
   };
@@ -77,8 +98,8 @@ const AnalyticsDashboard = () => {
     labels: ["Normal", "VIP"],
     datasets: [
       {
-        data: [ticketData.salesByType.normal, ticketData.salesByType.vip],
-        backgroundColor: ["#2196f3", "#ffc107"],
+        data: [totalNormalRetrievals, totalVIPRetrievals],
+        backgroundColor: ["#2196F3", "#FFC107"],
       },
     ],
   };
@@ -113,15 +134,23 @@ const AnalyticsDashboard = () => {
                 Status: <strong>{simulationStatus ? "Running" : "Stopped"}</strong>
               </Typography>
               <Typography variant="body1">
-                Available Tickets: <strong>{ticketData.availableTickets}</strong>
+                Available Tickets: <strong>{availableTickets}</strong>
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center", marginBottom: 2 }}>
               <Typography variant="body1">
-                Total Tickets Added: <strong>{ticketData.totalTicketsAdded}</strong>
+                Total Tickets Added: <strong>{totalTicketsAdded}</strong>
               </Typography>
               <Typography variant="body1">
-                Total Tickets Retrieved: <strong>{ticketData.totalTicketsRetrieved}</strong>
+                Total Tickets Retrieved: <strong>{totalTicketsRetrieved}</strong>
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: "center", marginBottom: 2 }}>
+              <Typography variant="body1">
+                VIP Sales: <strong>{totalVIPRetrievals}</strong>
+              </Typography>
+              <Typography variant="body1">
+                Normal Sales: <strong>{totalNormalRetrievals}</strong>
               </Typography>
             </Box>
           </Box>

@@ -1,11 +1,13 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
 
+import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -15,6 +17,7 @@ import java.util.Map;
 public class SimulationController {
 
     private final SimulationService simulationService;
+    private final SimulationLogService logService;
 
     @PostMapping("/start")
     public ResponseEntity<?> startSimulation(@RequestParam int numberOfVendors,
@@ -58,6 +61,17 @@ public class SimulationController {
             // Unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to fetch simulation status: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/logs")
+    public ResponseEntity<?> getLogs() {
+        try {
+            List<Map<String, Object>> logs = logService.getLogs();
+            return ResponseEntity.ok(logs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch logs: " + e.getMessage()));
         }
     }
 }

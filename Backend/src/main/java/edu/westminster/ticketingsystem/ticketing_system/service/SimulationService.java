@@ -1,6 +1,7 @@
 package edu.westminster.ticketingsystem.ticketing_system.service;
 
 import edu.westminster.ticketingsystem.ticketing_system.component.TicketPool;
+import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import edu.westminster.ticketingsystem.ticketing_system.model.Customer;
 import edu.westminster.ticketingsystem.ticketing_system.model.Vendor;
 import lombok.RequiredArgsConstructor;
@@ -12,30 +13,35 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor // This annotation will create the constructor with only dependency injected fields (1 - 4 here)
+@RequiredArgsConstructor
 public class SimulationService {
     private final ParticipantFactory participantFactory;
     private final TicketPool ticketPool;
     private final SimulationLogService logService;
     private final SimulationValidationService validationService;
+    private final SystemConfiguration systemConfiguration;
     private final List<Thread> vendorThreads = new ArrayList<>();
     private final List<Thread> customerThreads = new ArrayList<>();
-    private final List<Thread> vipCustomerThreads =  new ArrayList<>();
+    private final List<Thread> vipCustomerThreads = new ArrayList<>();
     private boolean isSimulationRunning = false;
 
     public void startSimulation(int numberOfVendors, int numberOfCustomers, int numberOfVIPCustomers) {
+        if (!systemConfiguration.isSystemConfigured()) {
+            throw new IllegalStateException("The system is not configured");
+        }
         if (isSimulationRunning) {
             throw new IllegalStateException("Simulation is already running");
         }
         validationService.validateSimulationStart(numberOfVendors, numberOfCustomers, numberOfVIPCustomers);
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
-        logService.sendLog("Simulation started with " + numberOfVendors + " number of vendors, " +
-                numberOfCustomers + " number of customers, " + numberOfVIPCustomers + " number of VIP customers");
 
-        /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
-           thread starting of vendor and customers
-         */
+        logService.sendStructuredLog("SIMULATION_STARTED", Map.of(
+                "numberOfVendors", numberOfVendors,
+                "numberOfCustomers", numberOfCustomers,
+                "numberOfVIPCustomers", numberOfVIPCustomers
+        ));
+
         int maxThreads = Math.max(numberOfVendors, Math.max(numberOfCustomers, numberOfVIPCustomers));
 
         for (int i = 0; i < maxThreads; i++) {
@@ -44,7 +50,10 @@ public class SimulationService {
                 Vendor vendor = participantFactory.createVendor(vendorId);
                 Thread vendorThread = new Thread(vendor);
                 vendorThreads.add(vendorThread);
-                logService.sendLog("Vendor " + vendorId + " started");
+                logService.sendStructuredLog("THREAD_STARTED", Map.of(
+                        "id", vendorId,
+                        "type", "Vendor"
+                ));
                 vendorThread.start();
             }
 
@@ -53,7 +62,10 @@ public class SimulationService {
                 Customer vipCustomer = participantFactory.createVIPCustomer(vipCustomerId);
                 Thread vipCustomerThread = new Thread(vipCustomer);
                 vipCustomerThreads.add(vipCustomerThread);
-                logService.sendLog("VIP Customer " + vipCustomerId + " started.");
+                logService.sendStructuredLog("THREAD_STARTED", Map.of(
+                        "id", vipCustomerId,
+                        "type", "VIP Customer"
+                ));
                 vipCustomerThread.start();
             }
 
@@ -62,7 +74,10 @@ public class SimulationService {
                 Customer customer = participantFactory.createCustomer(customerId);
                 Thread customerThread = new Thread(customer);
                 customerThreads.add(customerThread);
-                logService.sendLog("Customer " + customerId + " started");
+                logService.sendStructuredLog("THREAD_STARTED", Map.of(
+                        "id", customerId,
+                        "type", "Customer"
+                ));
                 customerThread.start();
             }
         }
@@ -81,11 +96,21 @@ public class SimulationService {
         customerThreads.clear();
         vipCustomerThreads.clear();
 
-        ticketPool.clearPoolData();
         isSimulationRunning = false;
 
         logService.sendSimulationStatus(false);
-        logService.sendLog("Simulation stopped");
+        logService.sendStructuredLog("SIMULATION_STOPPED", Map.of(
+                "message", "Simulation stopped"
+        ));
+    }
+
+    public Map<String, Object> resetTicketPoolData() {
+        if (isSimulationRunning) {
+            throw new IllegalStateException("Can't reset when a simulation is running");
+        }
+        ticketPool.clearPoolData();
+        logService.clearLogs();
+        return getSimulationStatusDetails();
     }
 
     public boolean getSimulationStatus() {
@@ -98,6 +123,8 @@ public class SimulationService {
         response.put("ticketCount", ticketPool.getTicketCount());
         response.put("totalTicketsAdded", ticketPool.getTotalTicketsAdded());
         response.put("totalTicketsRetrieved", ticketPool.getTotalTicketsRetrieved());
+        response.put("totalVIPRetrievals", ticketPool.getTotalVIPRetrievals());
+        response.put("totalNormalRetrievals", ticketPool.getTotalNormalRetrievals());
         response.put("numberOfVendors", vendorThreads.size());
         response.put("numberOfCustomers", customerThreads.size());
         response.put("numberOfVIPCustomers", vipCustomerThreads.size());

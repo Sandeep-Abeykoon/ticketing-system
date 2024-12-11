@@ -2,14 +2,18 @@ import React, { useContext, useRef, useEffect } from "react";
 import { WebSocketContext } from "../components/context/WebSocketContext";
 import { startSimulation, stopSimulation } from "../dummyApi";
 import { validateField } from "../utils/validation";
+import { formatLogMessage } from "../utils/logFormatter";
 import { TextField, Button, Box, Alert, Typography, Paper, Card, CardContent } from "@mui/material";
 
 const SimulationPage = () => {
   const {
     logs,
     setLogs,
-    ticketData,
-    setTicketData,
+    availableTickets,
+    totalTicketsAdded,
+    totalTicketsRetrieved,
+    totalVIPRetrievals,
+    totalNormalRetrievals,
     simulationStatus,
     numberOfCustomers,
     setNumberOfCustomers,
@@ -105,7 +109,7 @@ const SimulationPage = () => {
   };
 
   const handleClearLogs = () => {
-    setLogs([]); // Clear logs
+    setLogs([]);
     setMessage({ type: "success", text: "Logs cleared successfully!" });
     dismissMessageAfterDelay();
   };
@@ -114,7 +118,6 @@ const SimulationPage = () => {
     setNumberOfCustomers(0);
     setNumberOfVIPCustomers(0);
     setNumberOfVendors(0);
-    setTicketData({ availableTickets: 0, totalTicketsAdded: 0, totalTicketsRetrieved: 0 });
     setLogs([]);
     setMessage({ type: "success", text: "Simulation reset successfully!" });
     dismissMessageAfterDelay();
@@ -153,8 +156,8 @@ const SimulationPage = () => {
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: 2,
-                justifyItems: "center", // Center content horizontally within each column
-                alignItems: "center", // Center content vertically within each column
+                justifyItems: "center",
+                alignItems: "center",
                 marginTop: 2,
               }}
             >
@@ -165,17 +168,27 @@ const SimulationPage = () => {
               </Box>
               <Box>
                 <Typography variant="body1">
-                  Available Tickets: <strong>{ticketData.availableTickets || 0}</strong>
+                  Available Tickets: <strong>{availableTickets}</strong>
                 </Typography>
               </Box>
               <Box>
                 <Typography variant="body1">
-                  Tickets Added: <strong>{ticketData.totalTicketsAdded || 0}</strong>
+                  Tickets Added: <strong>{totalTicketsAdded}</strong>
                 </Typography>
               </Box>
               <Box>
                 <Typography variant="body1">
-                  Tickets Retrieved: <strong>{ticketData.totalTicketsRetrieved || 0}</strong>
+                  Tickets Retrieved: <strong>{totalTicketsRetrieved}</strong>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  VIP Retrievals: <strong>{totalVIPRetrievals}</strong>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  Normal Retrievals: <strong>{totalNormalRetrievals}</strong>
                 </Typography>
               </Box>
             </Box>
@@ -268,11 +281,17 @@ const SimulationPage = () => {
         }}
       >
         <Typography variant="h6" sx={{ mb: 1 }}>Logs</Typography>
-        {logs.map((log, index) => (
-          <Typography key={index} variant="body2" sx={{ mt: 1 }}>
-            {log}
-          </Typography>
-        ))}
+        {logs.map((log, index) => {
+          const formattedLog = formatLogMessage(log); // Call the formatter
+          if (!formattedLog) return null; // Skip if the log is null
+
+          const { message, color } = formattedLog; // Safely destructure
+          return (
+            <Typography key={index} variant="body2" sx={{ mt: 1, color }}>
+              {message}
+            </Typography>
+          );
+        })}
       </Paper>
     </Box>
   );

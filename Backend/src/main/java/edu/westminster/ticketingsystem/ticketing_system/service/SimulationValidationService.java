@@ -8,12 +8,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class SimulationValidationService {
 
-    private SystemConfiguration systemConfiguration;
-
     public void validateSimulationStart(int numberOfVendors, int numberOfCustomers, int numberOfVIPCustomers) {
-        if (!systemConfiguration.isSystemConfigured()) {
-            throw new IllegalStateException("The system is not configured");
-        }
         if (numberOfVendors <= 0) {
             throw new IllegalArgumentException("Number of vendors must be greater than 0");
         }

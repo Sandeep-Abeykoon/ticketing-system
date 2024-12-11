@@ -3,8 +3,11 @@ package edu.westminster.ticketingsystem.ticketing_system.model;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
 
+import java.util.Map;
+
 public class Vendor extends Participant {
     private final int ticketsPerRelease;
+
     public Vendor(String vendorId,
                   ConfigurationData configurationData,
                   TicketService ticketService,
@@ -19,9 +22,17 @@ public class Vendor extends Participant {
         boolean added = ticketService.generateAndAddTickets(id, ticketsPerRelease);
 
         if (!added) {
-            logService.sendLog("Vendor " + id + " could not add tickets to the pool");
+            logService.sendStructuredLog("TICKET_ADD_FAILED", Map.of(
+                    "id", id,
+                    "reason", "Pool has no space",
+                    "ticketsPerRelease", ticketsPerRelease
+            ));
         } else {
-            logService.sendLog("Vendor " + id + " added " + ticketsPerRelease + " tickets to the pool");
+            logService.sendStructuredLog("TICKET_ADD_VENDOR", Map.of(
+                    "id", id,
+                    "ticketsAdded", ticketsPerRelease,
+                    "operation", "Add tickets"
+            ));
         }
     }
 

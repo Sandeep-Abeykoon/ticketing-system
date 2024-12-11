@@ -3,6 +3,6 @@
   "ticketReleaseRate" : 1,
   "ticketReleaseInterval" : 1000,
   "customerRetrievalRate" : 1,
-  "customerRetrievalInterval" : 1000,
+  "customerRetrievalInterval" : 500,
   "maxTicketCapacity" : 1000
 }

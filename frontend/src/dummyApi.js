@@ -49,3 +49,8 @@ export const stopSimulation = async () => {
 };
 
 
+// Fetch logs
+export const getLogs = async () => {
+  const response = await axios.get(`${API_URL}/simulation/logs`);
+  return response.data;
+};
