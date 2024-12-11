@@ -31,6 +31,8 @@ public class ParticipantManagementService {
                 "id", customerId,
                 "type", isVIP ? "VIP Customer" : "Customer"
         ));
+
+
     }
 
     // Remove a customer (VIP or Normal) from the given list by ID

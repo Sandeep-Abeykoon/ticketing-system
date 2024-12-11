@@ -5,7 +5,7 @@ export const formatLogMessage = (log) => {
     let color = "black";
   
     // Skip processing and logging for actions that don't need to be shown
-    if (action === "TICKET_ADD") {
+    if (action === "TICKET_ADD" || action === "USER_UPDATE") {
         return null; 
     }
   
@@ -13,6 +13,26 @@ export const formatLogMessage = (log) => {
         case "TICKET_ADD_VENDOR":
             message = `${timestamp} - Vendor (${details.id}) added ${details.ticketsAdded} tickets.`;
             color = "black";
+            break;
+
+        case "CUSTOMER_ADDED":
+            message = `${timestamp} - ${details.type} (${details.id}) added.`;
+            color = details.type === "VIP Customer" ? "#B8860B" : "green";
+            break;
+
+        case "CUSTOMER_REMOVED":
+            message = `${timestamp} - Customer (${details.id}) removed.`;
+            color = "red";
+            break;
+
+        case "VENDOR_ADDED":
+            message = `${timestamp} - Vendor (${details.id}) added.`;
+            color = "green";
+            break;
+
+        case "VENDOR_REMOVED":
+            message = `${timestamp} - Vendor (${details.id}) removed.`;
+            color = "red";
             break;
     
         case "TICKET_RETRIEVAL":
@@ -46,7 +66,7 @@ export const formatLogMessage = (log) => {
             break;
 
         case "THREAD_INTERRUPTED":
-            message = `${timestamp} - ${details.type} (${details.id}) thread Interrupted.`;
+            message = `${timestamp} - ${details.type} (${details.id}) thread interrupted.`;
             color = "black";
             break;
     
@@ -56,7 +76,7 @@ export const formatLogMessage = (log) => {
             break;
 
         case "PARTICIPANT_ERROR":
-            message = `${timestamp} - Vendor (${details.id}) failed to add tickets (${details.ticketsPerRelease}). Reason: ${details.reason}.`;
+            message = `${timestamp} - Vendor (${details.id}) encountered an error. Reason: ${details.reason}.`;
             color = "red";
             break;
     

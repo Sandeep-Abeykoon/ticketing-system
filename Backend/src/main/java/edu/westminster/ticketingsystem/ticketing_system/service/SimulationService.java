@@ -139,23 +139,35 @@ public class SimulationService {
     // Participant Management
     public void addVendor() {
         participantManagementService.addVendor(vendorThreads, isSimulationRunning);
+        sendUserUpdateLog();
     }
 
     public void addCustomer(boolean isVIP) {
         participantManagementService.addCustomer(
-                isVIP ? vipCustomerThreads : customerThreads, isVIP, isSimulationRunning
-        );
+                isVIP ? vipCustomerThreads : customerThreads, isVIP, isSimulationRunning);
+        sendUserUpdateLog();
     }
 
     public void removeVendor(String vendorId) {
         participantManagementService.removeVendor(vendorThreads, vendorId, isSimulationRunning);
+        sendUserUpdateLog();
     }
 
     public void removeCustomer(String customerId, boolean isVIP) {
         participantManagementService.removeCustomer(
                 isVIP ? vipCustomerThreads : customerThreads, customerId, isSimulationRunning
         );
+        sendUserUpdateLog();
     }
 
+    // Utility to send user update log
+    private void sendUserUpdateLog() {
+        logService.sendStructuredLog("USER_UPDATE", Map.of(
+                "numberOfCustomers", customerThreads.size(),
+                "numberOfVIPCustomers", vipCustomerThreads.size(),
+                "numberOfVendors", vendorThreads.size()
+        ));
+    }
 }
+
 

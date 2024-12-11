@@ -70,7 +70,7 @@ export const WebSocketProvider = ({ children }) => {
             updateStateFromResponse(details, stateMapper);
           }
 
-          if (action === "SIMULATION_STARTED") {
+          if (action === "SIMULATION_STARTED" || action === "USER_UPDATE") {
             setNumberOfCustomers(details.numberOfCustomers || 0);
             setNumberOfVIPCustomers(details.numberOfVIPCustomers || 0);
             setNumberOfVendors(details.numberOfVendors || 0);
