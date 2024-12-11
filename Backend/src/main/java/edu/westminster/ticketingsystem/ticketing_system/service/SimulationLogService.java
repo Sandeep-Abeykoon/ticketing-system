@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -19,8 +21,13 @@ public class SimulationLogService {
         messagingTemplate.convertAndSend("/topic/simulation-logs", logMessageWithTimeStamp);
     }
 
-    public void sendTicketAvailability(int availableTickets) {
-        messagingTemplate.convertAndSend("/topic/ticket-availability", availableTickets);
+    public void sendTicketData(int availableTickets, int totalTicketsAdded, int totalTicketsRetrieved) {
+        Map<String, Integer> ticketData = new HashMap<>();
+        ticketData.put("availableTickets", availableTickets);
+        ticketData.put("totalTicketsAdded", totalTicketsAdded);
+        ticketData.put("totalTicketsRetrieved", totalTicketsRetrieved);
+
+        messagingTemplate.convertAndSend("/topic/ticket-data", ticketData);
     }
 
     public void sendSimulationStatus(boolean isRunning) {

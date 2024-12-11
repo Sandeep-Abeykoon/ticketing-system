@@ -2,45 +2,28 @@ package edu.westminster.ticketingsystem.ticketing_system.model;
 
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
 import edu.westminster.ticketingsystem.ticketing_system.service.TicketService;
+import lombok.Getter;
 
-public class Customer implements Runnable{
-    private final String customerId;
-    private final int ticketsPerRetrieval;
-    private final int retrievalInterval;
-    private final TicketService ticketService;
-    private final SimulationLogService logService;
+public class Customer extends Participant{
+    protected final int ticketsPerRetrieval;
 
     public Customer(String customerId,
                     ConfigurationData configurationData,
                     TicketService ticketService,
                     SimulationLogService logService) {
-        this.customerId = customerId;
+        super(customerId, configurationData.getCustomerRetrievalInterval(), ticketService, logService);
         this.ticketsPerRetrieval = configurationData.getCustomerRetrievalRate();
-        this.retrievalInterval = configurationData.getCustomerRetrievalInterval();
-        this.ticketService = ticketService;
-        this.logService = logService;
     }
 
     @Override
-    public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                // Retrieve tickets
-                boolean retrieved = ticketService.retrieveTickets(customerId, ticketsPerRetrieval);
+    protected void performOperation() {
+        // Retrieve tickets
+        ticketService.retrieveTickets(id, ticketsPerRetrieval, false);
+    }
 
-                if (!retrieved) {
-                    logService.sendLog("Customer " + customerId + " could not retrieve tickets");
-                } else {
-                    logService.sendLog("Customer " + customerId + " retrieved " + ticketsPerRetrieval + " tickets");
-                }
-
-                // Wait for the retrieval interval
-                Thread.sleep(retrievalInterval);
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                logService.sendLog("Customer " + customerId + " Interrupted");
-            }
-        }
+    @Override
+    protected String getType() {
+        return "Customer";
     }
 }
+

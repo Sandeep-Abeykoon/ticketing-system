@@ -27,7 +27,7 @@ export const getSimulationStatus = async () => {
 };
 
 // Start simulation
-export const startSimulation = async (numberOfCustomers, numberOfVendors) => {
+export const startSimulation = async (numberOfCustomers, numberOfVendors, numberOfVIPCustomers) => {
   const response = await axios.post(
     `${API_URL}/simulation/start`,
     null, // No request body
@@ -35,6 +35,7 @@ export const startSimulation = async (numberOfCustomers, numberOfVendors) => {
       params: {
         numberOfCustomers,
         numberOfVendors,
+        numberOfVIPCustomers,
       },
     }
   );

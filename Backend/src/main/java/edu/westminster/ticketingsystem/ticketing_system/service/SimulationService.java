@@ -20,22 +20,24 @@ public class SimulationService {
     private final SimulationValidationService validationService;
     private final List<Thread> vendorThreads = new ArrayList<>();
     private final List<Thread> customerThreads = new ArrayList<>();
+    private final List<Thread> vipCustomerThreads =  new ArrayList<>();
     private boolean isSimulationRunning = false;
 
-    public void startSimulation(int numberOfVendors, int numberOfCustomers) {
+    public void startSimulation(int numberOfVendors, int numberOfCustomers, int numberOfVIPCustomers) {
         if (isSimulationRunning) {
             throw new IllegalStateException("Simulation is already running");
         }
-        validationService.validateSimulationStart(numberOfVendors, numberOfCustomers);
+        validationService.validateSimulationStart(numberOfVendors, numberOfCustomers, numberOfVIPCustomers);
         isSimulationRunning = true;
         logService.sendSimulationStatus(true);
-        logService.sendLog("Simulation started with " + numberOfVendors + " number of vendors and " +
-                numberOfCustomers + " number of customers");
+        logService.sendLog("Simulation started with " + numberOfVendors + " number of vendors, " +
+                numberOfCustomers + " number of customers, " + numberOfVIPCustomers + " number of VIP customers");
 
         /* Starting one Vendor thread and one Customer thread in each thread loop to balance the
            thread starting of vendor and customers
          */
-        int maxThreads = Math.max(numberOfVendors, numberOfCustomers);
+        int maxThreads = Math.max(numberOfVendors, Math.max(numberOfCustomers, numberOfVIPCustomers));
+
         for (int i = 0; i < maxThreads; i++) {
             if (i < numberOfVendors) {
                 String vendorId = String.valueOf(i + 1);
@@ -44,6 +46,15 @@ public class SimulationService {
                 vendorThreads.add(vendorThread);
                 logService.sendLog("Vendor " + vendorId + " started");
                 vendorThread.start();
+            }
+
+            if (i < numberOfVIPCustomers) {
+                String vipCustomerId = String.valueOf(i + 1);
+                Customer vipCustomer = participantFactory.createVIPCustomer(vipCustomerId);
+                Thread vipCustomerThread = new Thread(vipCustomer);
+                vipCustomerThreads.add(vipCustomerThread);
+                logService.sendLog("VIP Customer " + vipCustomerId + " started.");
+                vipCustomerThread.start();
             }
 
             if (i < numberOfCustomers) {
@@ -64,12 +75,15 @@ public class SimulationService {
 
         vendorThreads.forEach(Thread::interrupt);
         customerThreads.forEach(Thread::interrupt);
+        vipCustomerThreads.forEach(Thread::interrupt);
 
         vendorThreads.clear();
         customerThreads.clear();
+        vipCustomerThreads.clear();
 
-        ticketPool.clearPool();
+        ticketPool.clearPoolData();
         isSimulationRunning = false;
+
         logService.sendSimulationStatus(false);
         logService.sendLog("Simulation stopped");
     }
@@ -82,8 +96,11 @@ public class SimulationService {
         Map<String, Object> response = new HashMap<>();
         response.put("isRunning", getSimulationStatus());
         response.put("ticketCount", ticketPool.getTicketCount());
+        response.put("totalTicketsAdded", ticketPool.getTotalTicketsAdded());
+        response.put("totalTicketsRetrieved", ticketPool.getTotalTicketsRetrieved());
         response.put("numberOfVendors", vendorThreads.size());
         response.put("numberOfCustomers", customerThreads.size());
+        response.put("numberOfVIPCustomers", vipCustomerThreads.size());
         return response;
     }
 }

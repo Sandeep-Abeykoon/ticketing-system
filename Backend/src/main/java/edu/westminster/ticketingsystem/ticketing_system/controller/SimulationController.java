@@ -17,9 +17,11 @@ public class SimulationController {
     private final SimulationService simulationService;
 
     @PostMapping("/start")
-    public ResponseEntity<?> startSimulation(@RequestParam int numberOfVendors, @RequestParam int numberOfCustomers) {
+    public ResponseEntity<?> startSimulation(@RequestParam int numberOfVendors,
+                                             @RequestParam int numberOfCustomers,
+                                             @RequestParam int numberOfVIPCustomers) {
         try {
-            simulationService.startSimulation(numberOfVendors, numberOfCustomers);
+            simulationService.startSimulation(numberOfVendors, numberOfCustomers, numberOfVIPCustomers);
             return ResponseEntity.ok("Simulation started successfully.");
         } catch (IllegalStateException e) {
             // State-related errors

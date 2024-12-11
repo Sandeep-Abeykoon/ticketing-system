@@ -2,17 +2,19 @@ import React, { useContext, useRef, useEffect } from "react";
 import { WebSocketContext } from "../components/context/WebSocketContext";
 import { startSimulation, stopSimulation } from "../dummyApi";
 import { validateField } from "../utils/validation";
-import { TextField, Button, Box, Alert, Typography, Paper } from "@mui/material";
+import { TextField, Button, Box, Alert, Typography, Paper, Card, CardContent } from "@mui/material";
 
 const SimulationPage = () => {
   const {
     logs,
     setLogs,
-    ticketAvailability,
-    setTicketAvailability,
+    ticketData,
+    setTicketData,
     simulationStatus,
     numberOfCustomers,
     setNumberOfCustomers,
+    numberOfVIPCustomers,
+    setNumberOfVIPCustomers,
     numberOfVendors,
     setNumberOfVendors,
     isLoading,
@@ -25,7 +27,6 @@ const SimulationPage = () => {
   const logContainerRef = useRef(null);
   const [isScrolled, setIsScrolled] = React.useState(false);
 
-  // Scroll to the bottom when new logs arrive unless the user has manually scrolled up
   useEffect(() => {
     if (logContainerRef.current && !isScrolled) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -47,26 +48,33 @@ const SimulationPage = () => {
     setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
 
     if (name === "numberOfCustomers") setNumberOfCustomers(parsedValue);
+    if (name === "numberOfVIPCustomers") setNumberOfVIPCustomers(parsedValue);
     if (name === "numberOfVendors") setNumberOfVendors(parsedValue);
   };
 
   const handleStart = async () => {
     const customerError = validateField("numberOfCustomers", numberOfCustomers);
+    const vipCustomerError = validateField("numberOfVIPCustomers", numberOfVIPCustomers);
     const vendorError = validateField("numberOfVendors", numberOfVendors);
 
-    if (customerError || vendorError) {
+    if (customerError || vipCustomerError || vendorError) {
       setErrors({
         numberOfCustomers: customerError,
+        numberOfVIPCustomers: vipCustomerError,
         numberOfVendors: vendorError,
       });
       return;
     }
 
     setIsSubmitting(true);
-    setLogs([]); // Clear logs when starting the simulation
+    setLogs([]);
 
     try {
-      await startSimulation(Number(numberOfCustomers), Number(numberOfVendors));
+      await startSimulation(
+        Number(numberOfCustomers),
+        Number(numberOfVendors),
+        Number(numberOfVIPCustomers)
+      );
       setMessage({ type: "success", text: "Simulation started successfully." });
     } catch (error) {
       console.error("Failed to start simulation:", error);
@@ -104,8 +112,9 @@ const SimulationPage = () => {
 
   const handleReset = () => {
     setNumberOfCustomers(0);
+    setNumberOfVIPCustomers(0);
     setNumberOfVendors(0);
-    setTicketAvailability(0);
+    setTicketData({ availableTickets: 0, totalTicketsAdded: 0, totalTicketsRetrieved: 0 });
     setLogs([]);
     setMessage({ type: "success", text: "Simulation reset successfully!" });
     dismissMessageAfterDelay();
@@ -120,82 +129,142 @@ const SimulationPage = () => {
   }
 
   return (
-    <div style={{ width: "60%", margin: "auto", marginTop: 20 }}>
-      <h1>Simulation Dashboard</h1>
+    <Box sx={{ maxWidth: "1200px", margin: "auto", marginTop: 4, padding: 2 }}>
+      <Typography variant="h4" align="center" sx={{ marginBottom: 4 }}>
+        Simulation Dashboard
+      </Typography>
       {message && <Alert severity={message.type} sx={{ mb: 2 }}>{message.text}</Alert>}
-      <Typography variant="h6">Simulation Status: {simulationStatus ? "Running" : "Stopped"}</Typography>
-      <Typography variant="h6" sx={{ mb: 4 }}>Available Tickets: {ticketAvailability || 0}</Typography>
-      
-      <Box component="form" sx={{ mb: 2 }}>
-        <TextField
-          label="Number of Customers"
-          name="numberOfCustomers"
-          type="number"
-          value={numberOfCustomers || ""}
-          onChange={handleChange}
-          fullWidth
-          sx={{ mb: 2 }}
-          disabled={simulationStatus || isSubmitting}
-          error={!!errors.numberOfCustomers}
-          helperText={errors.numberOfCustomers}
-        />
-        <TextField
-          label="Number of Vendors"
-          name="numberOfVendors"
-          type="number"
-          value={numberOfVendors || ""}
-          onChange={handleChange}
-          fullWidth
-          sx={{ mb: 2 }}
-          disabled={simulationStatus || isSubmitting}
-          error={!!errors.numberOfVendors}
-          helperText={errors.numberOfVendors}
-        />
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          alignItems: "center",
+        }}
+      >
+        <Card sx={{ width: "100%" }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom align="center">
+              Simulation Data
+            </Typography>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 2,
+                justifyItems: "center", // Center content horizontally within each column
+                alignItems: "center", // Center content vertically within each column
+                marginTop: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="body1">
+                  Status: <strong>{simulationStatus ? "Running" : "Stopped"}</strong>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  Available Tickets: <strong>{ticketData.availableTickets || 0}</strong>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  Tickets Added: <strong>{ticketData.totalTicketsAdded || 0}</strong>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body1">
+                  Tickets Retrieved: <strong>{ticketData.totalTicketsRetrieved || 0}</strong>
+                </Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Box component="form" sx={{ maxWidth: "600px" }}>
+          <TextField
+            label="Number of Customers"
+            name="numberOfCustomers"
+            type="number"
+            value={numberOfCustomers || ""}
+            onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
+            disabled={simulationStatus || isSubmitting}
+            error={!!errors.numberOfCustomers}
+            helperText={errors.numberOfCustomers}
+          />
+          <TextField
+            label="Number of VIP Customers"
+            name="numberOfVIPCustomers"
+            type="number"
+            value={numberOfVIPCustomers || ""}
+            onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
+            disabled={simulationStatus || isSubmitting}
+            error={!!errors.numberOfVIPCustomers}
+            helperText={errors.numberOfVIPCustomers}
+          />
+          <TextField
+            label="Number of Vendors"
+            name="numberOfVendors"
+            type="number"
+            value={numberOfVendors || ""}
+            onChange={handleChange}
+            fullWidth
+            sx={{ mb: 2 }}
+            disabled={simulationStatus || isSubmitting}
+            error={!!errors.numberOfVendors}
+            helperText={errors.numberOfVendors}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleStart}
+            disabled={simulationStatus || isSubmitting}
+          >
+            {isSubmitting ? "Starting..." : "Start Simulation"}
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleStop}
+            disabled={!simulationStatus || isSubmitting}
+          >
+            {isSubmitting ? "Stopping..." : "Stop Simulation"}
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleClearLogs}
+          >
+            Clear Logs
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleReset}
+            disabled={simulationStatus || isSubmitting}
+          >
+            Reset
+          </Button>
+        </Box>
       </Box>
-      
-      <Box sx={{ display: "flex", gap: 2, marginBottom: 4 }}>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleStart}
-          disabled={simulationStatus || isSubmitting}
-        >
-          {isSubmitting ? "Starting..." : "Start Simulation"}
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={handleStop}
-          disabled={!simulationStatus || isSubmitting}
-        >
-          {isSubmitting ? "Stopping..." : "Stop Simulation"}
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleClearLogs}
-        >
-          Clear Logs
-        </Button>
-        <Button
-          variant="contained"
-          color="warning"
-          onClick={handleReset}
-          disabled={simulationStatus || isSubmitting}
-        >
-          Reset
-        </Button>
-      </Box>
-      
+
       <Paper
         ref={logContainerRef}
         onScroll={handleScroll}
-        style={{
+        sx={{
           height: "200px",
           overflowY: "scroll",
-          marginTop: 20,
+          marginTop: 4,
           border: "1px solid black",
-          padding: "10px",
+          padding: 2,
         }}
       >
         <Typography variant="h6" sx={{ mb: 1 }}>Logs</Typography>
@@ -205,7 +274,7 @@ const SimulationPage = () => {
           </Typography>
         ))}
       </Paper>
-    </div>
+    </Box>
   );
 };
 

@@ -1,10 +1,19 @@
 export const validateField = (name, value) => {
-    if (name !== "totalTickets" && value <= 0) {
-      return "Value must be greater than 0";
-    }
-    if (value < 0 || isNaN(value)) {
-      return "Value cannot be negative or non-numeric";
-    }
-    return "";
-  };
-  
+  if (isNaN(value)) {
+    return "Value must be numeric";
+  }
+
+  if (value < 0) {
+    return "Value cannot be negative";
+  }
+
+  if (name === "numberOfVIPCustomers") {
+    return null;
+  }
+
+  if (value <= 0) {
+    return `${name.replace(/([A-Z])/g, " $1")} must be greater than 0`;
+  }
+
+  return null;
+};
