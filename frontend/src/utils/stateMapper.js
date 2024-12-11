@@ -1,7 +1,7 @@
 export const createStateMapper = (setters) => {
     return {
       isRunning: setters.setSimulationStatus,
-      ticketCount: setters.setAvailableTickets,
+      availableTickets: setters.setAvailableTickets,
       totalTicketsAdded: setters.setTotalTicketsAdded,
       totalTicketsRetrieved: setters.setTotalTicketsRetrieved,
       totalVIPRetrievals: setters.setTotalVIPRetrievals,

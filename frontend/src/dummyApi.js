@@ -59,3 +59,31 @@ export const getAllTransactions = async () => {
   const response = await axios.get(`${API_URL}/transactions`);
   return response.data;
 };
+
+// Add a vendor
+export const addVendor = async () => {
+  const response = await axios.post(`${API_URL}/participants/vendor/add`);
+  return response.data;
+};
+
+// Remove a vendor
+export const removeVendor = async (vendorId) => {
+  const response = await axios.delete(`${API_URL}/participants/vendor/remove/${vendorId}`);
+  return response.data;
+};
+
+// Add a customer (Normal or VIP)
+export const addCustomer = async (isVIP) => {
+  const response = await axios.post(`${API_URL}/participants/customer/add`, null, {
+    params: { isVIP },
+  });
+  return response.data;
+};
+
+// Remove a customer (Normal or VIP)
+export const removeCustomer = async (customerId, isVIP) => {
+  const response = await axios.delete(`${API_URL}/participants/customer/remove/${customerId}`, {
+    params: { isVIP },
+  });
+  return response.data;
+};

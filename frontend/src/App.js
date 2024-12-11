@@ -4,6 +4,7 @@ import ConfigurationPage from "./pages/ConfigurationPage";
 import SimulationPage from "./pages/simulationPage";
 import AnalyticsDashboard from "./pages/DashboardPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import UserManagementPage from "./pages/UserManagementPage";
 import { WebSocketProvider } from "./components/context/WebSocketContext";
 
 const App = () => {
@@ -18,6 +19,7 @@ const App = () => {
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/dashboard" element={<AnalyticsDashboard />} />
             <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/userManagement" element={<UserManagementPage/>} />
           </Routes>
         </div>
       </Router>

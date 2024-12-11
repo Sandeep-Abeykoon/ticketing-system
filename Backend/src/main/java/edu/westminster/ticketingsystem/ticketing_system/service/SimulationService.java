@@ -19,6 +19,7 @@ public class SimulationService {
     private final TicketPool ticketPool;
     private final SimulationLogService logService;
     private final SimulationValidationService validationService;
+    private final ParticipantManagementService participantManagementService;
     private final SystemConfiguration systemConfiguration;
     private final List<Thread> vendorThreads = new ArrayList<>();
     private final List<Thread> customerThreads = new ArrayList<>();
@@ -49,6 +50,7 @@ public class SimulationService {
                 String vendorId = String.valueOf(i + 1);
                 Vendor vendor = participantFactory.createVendor(vendorId);
                 Thread vendorThread = new Thread(vendor);
+                vendorThread.setName(vendorId);
                 vendorThreads.add(vendorThread);
                 logService.sendStructuredLog("THREAD_STARTED", Map.of(
                         "id", vendorId,
@@ -61,6 +63,7 @@ public class SimulationService {
                 String vipCustomerId = String.valueOf(i + 1);
                 Customer vipCustomer = participantFactory.createVIPCustomer(vipCustomerId);
                 Thread vipCustomerThread = new Thread(vipCustomer);
+                vipCustomerThread.setName(vipCustomerId);
                 vipCustomerThreads.add(vipCustomerThread);
                 logService.sendStructuredLog("THREAD_STARTED", Map.of(
                         "id", vipCustomerId,
@@ -73,6 +76,7 @@ public class SimulationService {
                 String customerId = String.valueOf(i + 1);
                 Customer customer = participantFactory.createCustomer(customerId);
                 Thread customerThread = new Thread(customer);
+                customerThread.setName(customerId);
                 customerThreads.add(customerThread);
                 logService.sendStructuredLog("THREAD_STARTED", Map.of(
                         "id", customerId,
@@ -131,5 +135,27 @@ public class SimulationService {
         response.put("logs", logService.getLogs()); // Add logs to the response
         return response;
     }
+
+    // Participant Management
+    public void addVendor() {
+        participantManagementService.addVendor(vendorThreads, isSimulationRunning);
+    }
+
+    public void addCustomer(boolean isVIP) {
+        participantManagementService.addCustomer(
+                isVIP ? vipCustomerThreads : customerThreads, isVIP, isSimulationRunning
+        );
+    }
+
+    public void removeVendor(String vendorId) {
+        participantManagementService.removeVendor(vendorThreads, vendorId, isSimulationRunning);
+    }
+
+    public void removeCustomer(String customerId, boolean isVIP) {
+        participantManagementService.removeCustomer(
+                isVIP ? vipCustomerThreads : customerThreads, customerId, isSimulationRunning
+        );
+    }
+
 }
 

@@ -62,6 +62,9 @@ const Header = () => {
           <Button color="inherit" component={Link} to="/transactions">
             Transactions
           </Button>
+          <Button color="inherit" component={Link} to="/userManagement">
+            User Management
+          </Button>
         </Box>
 
         {/* Mobile Menu */}
@@ -86,6 +89,9 @@ const Header = () => {
             </MenuItem>
             <MenuItem onClick={handleMenuClose} component={Link} to="/transactions">
               Transactions
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose} component={Link} to="/userManagement">
+              User Management
             </MenuItem>
           </Menu>
         </Box>

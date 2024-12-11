@@ -124,7 +124,7 @@ public class TicketPool {
         lock.lock();
         try {
             logService.sendStructuredLog("POOL_CLEARED", Map.of(
-                    "availableTickets", 0,
+                    "availableTickets", tickets.size(),
                     "totalTicketsAdded", totalTicketsAdded,
                     "totalTicketsRetrieved", totalTicketsRetrieved,
                     "totalVIPRetrievals", totalVIPRetrievals,

@@ -39,4 +39,5 @@ public abstract class Participant implements Runnable {
     protected abstract void performOperation();
 
     protected abstract String getType();
+
 }
