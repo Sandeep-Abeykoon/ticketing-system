@@ -48,9 +48,8 @@ export const stopSimulation = async () => {
   return response.data;
 };
 
-
-// Fetch logs
-export const getLogs = async () => {
-  const response = await axios.get(`${API_URL}/simulation/logs`);
+// Reset Simulation
+export const resetSimulation = async () => {
+  const response = await axios.post(`${API_URL}/simulation/reset`);
   return response.data;
 };

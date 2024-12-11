@@ -64,14 +64,16 @@ public class SimulationController {
         }
     }
 
-    @GetMapping("/logs")
-    public ResponseEntity<?> getLogs() {
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetSimulation() {
         try {
-            List<Map<String, Object>> logs = logService.getLogs();
-            return ResponseEntity.ok(logs);
+            Map<String, Object> response = simulationService.resetTicketPoolData();
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to fetch logs: " + e.getMessage()));
+                    .body("Failed to reset simulation: " + e.getMessage());
         }
     }
 }

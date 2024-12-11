@@ -22,6 +22,7 @@ const SimulationPage = () => {
     numberOfVendors,
     setNumberOfVendors,
     isLoading,
+    resetSimulationData,
   } = useContext(WebSocketContext);
 
   const [message, setMessage] = React.useState(null);
@@ -114,13 +115,13 @@ const SimulationPage = () => {
     dismissMessageAfterDelay();
   };
 
-  const handleReset = () => {
-    setNumberOfCustomers(0);
-    setNumberOfVIPCustomers(0);
-    setNumberOfVendors(0);
-    setLogs([]);
-    setMessage({ type: "success", text: "Simulation reset successfully!" });
-    dismissMessageAfterDelay();
+  const handleReset = async () => {
+    try {
+      await resetSimulationData();
+      setMessage({ type: "success", text: "Simulation reset successfully!" });
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to reset simulation." });
+    }
   };
 
   const dismissMessageAfterDelay = () => {

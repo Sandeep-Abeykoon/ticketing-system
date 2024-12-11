@@ -128,6 +128,8 @@ public class SimulationService {
         response.put("numberOfVendors", vendorThreads.size());
         response.put("numberOfCustomers", customerThreads.size());
         response.put("numberOfVIPCustomers", vipCustomerThreads.size());
+        response.put("logs", logService.getLogs()); // Add logs to the response
         return response;
     }
 }
+
