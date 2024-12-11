@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from "react";
 import { Client } from "@stomp/stompjs";
 import { getSimulationStatus, resetSimulation } from "../../dummyApi";
+import { createStateMapper, updateStateFromResponse } from "../../utils/stateMapper";
 
 export const WebSocketContext = createContext();
 
@@ -18,33 +19,24 @@ export const WebSocketProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
 
-  // State mapper for dynamic updates
-  const stateMapper = {
-    isRunning: setSimulationStatus,
-    ticketCount: setAvailableTickets,
-    totalTicketsAdded: setTotalTicketsAdded,
-    totalTicketsRetrieved: setTotalTicketsRetrieved,
-    totalVIPRetrievals: setTotalVIPRetrievals,
-    totalNormalRetrievals: setTotalNormalRetrievals,
-    numberOfCustomers: setNumberOfCustomers,
-    numberOfVendors: setNumberOfVendors,
-    numberOfVIPCustomers: setNumberOfVIPCustomers,
-  };
-
-  const updateStateFromResponse = (response) => {
-    Object.entries(stateMapper).forEach(([key, setter]) => {
-      if (key in response) {
-        setter(response[key] || 0); // Set state or default to 0
-      }
-    });
-    setLogs(response.logs || []); // Handle logs separately
-  };
+  // Create the state mapper dynamically
+  const stateMapper = createStateMapper({
+    setSimulationStatus,
+    setAvailableTickets,
+    setTotalTicketsAdded,
+    setTotalTicketsRetrieved,
+    setTotalVIPRetrievals,
+    setTotalNormalRetrievals,
+    setNumberOfCustomers,
+    setNumberOfVendors,
+    setNumberOfVIPCustomers,
+  });
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const statusResponse = await getSimulationStatus();
-        updateStateFromResponse(statusResponse);
+        updateStateFromResponse(statusResponse, stateMapper, setLogs);
       } catch (error) {
         console.error("Failed to fetch initial simulation data:", error);
       } finally {
@@ -52,13 +44,12 @@ export const WebSocketProvider = ({ children }) => {
       }
     };
 
-    fetchInitialData();
-
     const client = new Client({
       brokerURL: "ws://localhost:8080/ws-status",
       reconnectDelay: 5000,
       onConnect: () => {
         setConnectionStatus("connected");
+        fetchInitialData();
 
         // Simulation Status Subscription
         client.subscribe("/topic/simulation-status", (message) => {
@@ -71,17 +62,12 @@ export const WebSocketProvider = ({ children }) => {
           const log = JSON.parse(message.body);
           const { action, details } = log;
 
-          // Use mapper for real-time updates
           if (
             action === "TICKET_ADD" ||
             action === "TICKET_RETRIEVAL" ||
             action === "POOL_CLEARED"
           ) {
-            Object.entries(stateMapper).forEach(([key, setter]) => {
-              if (key in details) {
-                setter(details[key] || 0); // Update states dynamically
-              }
-            });
+            updateStateFromResponse(details, stateMapper);
           }
 
           if (action === "SIMULATION_STARTED") {
@@ -90,7 +76,6 @@ export const WebSocketProvider = ({ children }) => {
             setNumberOfVendors(details.numberOfVendors || 0);
           }
 
-          // Add log to logs array
           setLogs((prevLogs) => [...prevLogs, log]);
         });
       },
@@ -116,10 +101,10 @@ export const WebSocketProvider = ({ children }) => {
 
   // Reset Simulation Function
   const resetSimulationData = async () => {
-    setIsLoading(true); // Indicate reset is in progress
+    setIsLoading(true);
     try {
-      const resetResponse = await resetSimulation(); // Call reset API
-      updateStateFromResponse(resetResponse); // Update state with reset data
+      const resetResponse = await resetSimulation();
+      updateStateFromResponse(resetResponse, stateMapper, setLogs);
     } catch (error) {
       console.error("Failed to reset simulation:", error);
       alert("Error resetting simulation. Please try again.");
@@ -147,7 +132,7 @@ export const WebSocketProvider = ({ children }) => {
         setNumberOfVendors,
         isLoading,
         connectionStatus,
-        resetSimulationData, // Expose reset function
+        resetSimulationData,
       }}
     >
       {children}
