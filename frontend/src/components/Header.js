@@ -53,7 +53,7 @@ const Header = () => {
           <Button color="inherit" component={Link} to="/config">
             Configuration
           </Button>
-          <Button color="inherit" component={Link} to="/simulation">
+          <Button color="inherit" component={Link} to="/">
             Simulation
           </Button>
           <Button color="inherit" component={Link} to="/dashboard">
@@ -81,7 +81,7 @@ const Header = () => {
             <MenuItem onClick={handleMenuClose} component={Link} to="/config">
               Configuration
             </MenuItem>
-            <MenuItem onClick={handleMenuClose} component={Link} to="/simulation">
+            <MenuItem onClick={handleMenuClose} component={Link} to="/">
               Simulation
             </MenuItem>
             <MenuItem onClick={handleMenuClose} component={Link} to="/dashboard">

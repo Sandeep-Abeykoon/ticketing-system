@@ -16,7 +16,7 @@ const App = () => {
         <div style={{ padding: 20 }}>
           <Routes>
             <Route path="/config" element={<ConfigurationPage />} />
-            <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/" element={<SimulationPage />} />
             <Route path="/dashboard" element={<AnalyticsDashboard />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/userManagement" element={<UserManagementPage/>} />

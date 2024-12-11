@@ -11,8 +11,12 @@ const UserManagementPage = () => {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
 
+  // Validate input is a positive number
+  const isValidId = (id) => /^[1-9][0-9]*$/.test(id);
+
   const handleAddParticipant = async () => {
     try {
+      setError(null); // Clear previous errors
       if (userType === "vendor") {
         await addVendor();
         setMessage("Vendor added successfully.");
@@ -21,15 +25,20 @@ const UserManagementPage = () => {
         await addCustomer(isVIP);
         setMessage(`${isVIP ? "VIP Customer" : "Customer"} added successfully.`);
       }
-      setError(null);
     } catch (err) {
-      setError("Failed to add participant. Please try again.");
+      setError(err.response?.data || "Failed to add participant. Please try again.");
       setMessage(null);
     }
   };
 
   const handleRemoveParticipant = async () => {
+    if (!isValidId(userId)) {
+      setError("Participant ID must be a positive number and cannot be blank.");
+      return;
+    }
+
     try {
+      setError(null); // Clear previous errors
       if (userType === "vendor") {
         await removeVendor(userId);
         setMessage("Vendor removed successfully.");
@@ -38,9 +47,8 @@ const UserManagementPage = () => {
         await removeCustomer(userId, isVIP);
         setMessage(`${isVIP ? "VIP Customer" : "Customer"} removed successfully.`);
       }
-      setError(null);
     } catch (err) {
-      setError("Failed to remove participant. Please try again.");
+      setError(err.response?.data || "Failed to remove participant. Please check the ID and try again.");
       setMessage(null);
     }
   };
@@ -59,9 +67,15 @@ const UserManagementPage = () => {
           Current Participant Counts
         </Typography>
         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          <Typography><strong>Vendors:</strong> {numberOfVendors}</Typography>
-          <Typography><strong>Customers:</strong> {numberOfCustomers}</Typography>
-          <Typography><strong>VIP Customers:</strong> {numberOfVIPCustomers}</Typography>
+          <Typography>
+            <strong>Vendors:</strong> {numberOfVendors}
+          </Typography>
+          <Typography>
+            <strong>Customers:</strong> {numberOfCustomers}
+          </Typography>
+          <Typography>
+            <strong>VIP Customers:</strong> {numberOfVIPCustomers}
+          </Typography>
         </Box>
       </Paper>
 
@@ -76,12 +90,16 @@ const UserManagementPage = () => {
           Add Participant
         </Button>
 
-        <Typography variant="h6" sx={{ mt: 4 }}>Remove Participant</Typography>
+        <Typography variant="h6" sx={{ mt: 4 }}>
+          Remove Participant
+        </Typography>
         <TextField
           label="Participant ID"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           fullWidth
+          error={!isValidId(userId) && userId !== ""}
+          helperText={!isValidId(userId) && userId !== "" ? "Enter a valid positive number." : ""}
         />
         <Select value={userType} onChange={(e) => setUserType(e.target.value)} fullWidth>
           <MenuItem value="vendor">Vendor</MenuItem>
