@@ -4,6 +4,7 @@ import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfigurati
 import edu.westminster.ticketingsystem.ticketing_system.model.Ticket;
 import edu.westminster.ticketingsystem.ticketing_system.model.TicketRetrievalRequest;
 import edu.westminster.ticketingsystem.ticketing_system.service.SimulationLogService;
+import edu.westminster.ticketingsystem.ticketing_system.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TicketPool {
     private final SystemConfiguration systemConfiguration;
     private final SimulationLogService logService;
+    private final TransactionService transactionService;
     private final List<Ticket> tickets = new ArrayList<>();
     private final Lock lock = new ReentrantLock(true);
     private final Condition condition = lock.newCondition();
@@ -39,6 +41,16 @@ public class TicketPool {
             }
             tickets.addAll(ticketsToAdd);
             totalTicketsAdded += ticketsToAddSize;
+
+            // Log transaction
+            transactionService.logTransaction(
+                    "ADD",
+                    "VENDOR", // Default or replace with actual vendor ID if available
+                    "VENDOR",
+                    ticketsToAddSize,
+                    "Added tickets to the pool."
+            );
+
             logService.sendStructuredLog("TICKET_ADD", Map.of(
                     "ticketsAdded", ticketsToAddSize,
                     "availableTickets", tickets.size(),
@@ -58,7 +70,6 @@ public class TicketPool {
         lock.lock();
         try {
             requestQueue.add(request);
-            // tickets.size() < request.getTicketsPerRetrieval() is essential for priority for waiting for tickets to get added
             while (requestQueue.peek() != request || tickets.size() < request.getTicketsPerRetrieval()) {
                 condition.await();
             }
@@ -83,6 +94,16 @@ public class TicketPool {
             } else {
                 totalNormalRetrievals += request.getTicketsPerRetrieval();
             }
+
+            // Log transaction
+            transactionService.logTransaction(
+                    "RETRIEVE",
+                    request.getCustomerId(),
+                    request.isVIP() ? "VIP" : "NORMAL",
+                    request.getTicketsPerRetrieval(),
+                    "Retrieved tickets from the pool."
+            );
+
             logService.sendStructuredLog("TICKET_RETRIEVAL", Map.of(
                     "customerId", request.getCustomerId(),
                     "customerType", request.isVIP() ? "VIP" : "Normal",
@@ -109,6 +130,15 @@ public class TicketPool {
                     "totalVIPRetrievals", totalVIPRetrievals,
                     "totalNormalRetrievals", totalNormalRetrievals
             ));
+
+            // Log transaction
+            transactionService.logTransaction(
+                    "CLEAR",
+                    "SYSTEM",
+                    "SYSTEM",
+                    tickets.size(),
+                    "Cleared all tickets from the pool."
+            );
 
             tickets.clear();
             requestQueue.clear();

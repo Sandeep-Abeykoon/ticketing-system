@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TicketService {
     private TicketPool ticketPool;
-    private SimulationLogService logService;
     public boolean generateAndAddTickets(String vendorId, int ticketsPerRelease) {
         // Generating the tickets
         List<Ticket> ticketsToAdd = new ArrayList<>();

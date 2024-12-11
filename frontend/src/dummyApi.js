@@ -53,3 +53,9 @@ export const resetSimulation = async () => {
   const response = await axios.post(`${API_URL}/simulation/reset`);
   return response.data;
 };
+
+//Get all transactions (Which are saved in the database)
+export const getAllTransactions = async () => {
+  const response = await axios.get(`${API_URL}/transactions`);
+  return response.data;
+};
