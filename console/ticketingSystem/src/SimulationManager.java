@@ -2,108 +2,83 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Manages the ticket simulation, including vendor and customer threads.
+ */
 public class SimulationManager {
-    private final List<Thread> threads = new ArrayList<>(); // List to keep track of all threads
-    private TicketPool ticketPool; // Shared TicketPool
+    private final List<Thread> threads = new ArrayList<>();
+    private TicketPool ticketPool;
 
-    public void startSimulation(Configuration config) {
-        Scanner scanner = new Scanner(System.in);
+    /**
+     * Starts the simulation by initializing vendors, customers, and the ticket pool.
+     *
+     * @param config  Simulation configuration.
+     * @param scanner Scanner for user input.
+     */
+    public void startSimulation(Configuration config, Scanner scanner) {
+        System.out.println("\nPlease provide simulation details:");
 
-        System.out.println("Please provide the following details:");
-        System.out.println("---------------------------------------\n");
-
-        int numberOfVendors = getValidInput(scanner, "Number of Vendors (must be greater than 0): ", 1);
-        int numberOfCustomers = getValidInput(scanner, "Number of Customers (must be greater than 0): ", 1);
+        // Get the number of vendors and customers
+        int numberOfVendors = InputValidator.getPositiveInteger("Number of Vendors (must be greater than 0): ", scanner);
+        int numberOfCustomers = InputValidator.getPositiveInteger("Number of Customers (must be greater than 0): ", scanner);
 
         System.out.println("\nSimulation Details:");
-        System.out.println("----------------------\n");
-        System.out.println("Configuration: " + config);
-        System.out.println("Number of Vendors: " + numberOfVendors);
-        System.out.println("Number of Customers: " + numberOfCustomers);
+        System.out.println(config);
+        System.out.println("Vendors: " + numberOfVendors + ", Customers: " + numberOfCustomers);
 
-        System.out.println("\nStarting Simulation...");
-
-        // Create the shared TicketPool
         ticketPool = new TicketPool(config.getMaxTicketCapacity());
 
-        // Create vendor threads
-        for (int i = 1; i <= numberOfVendors; i++) {
-            Thread vendorThread = new Thread(new Vendor("Vendor-" + i, config.getTicketReleaseInterval(),
-                    config.getTicketReleaseRate(), ticketPool));
-            threads.add(vendorThread);
-            vendorThread.start();
-        }
+        int maxThreads = Math.max(numberOfVendors, numberOfCustomers);
 
-        // Create customer threads
-        for (int i = 1; i <= numberOfCustomers; i++) {
-            Thread customerThread = new Thread(new Customer("Customer-" + i, config.getTicketRetrievalInterval(),
-                    config.getCustomerRetrievalRate(), ticketPool));
-            threads.add(customerThread);
-            customerThread.start();
-        }
+        for (int i = 1; i <= maxThreads; i++) {
+            if (i <= numberOfVendors) {
+                Thread vendorThread = new Thread(new Vendor("Vendor-" + i, config.getTicketReleaseInterval(),
+                        config.getTicketReleaseRate(), ticketPool));
+                threads.add(vendorThread);
+                vendorThread.start();
+            }
 
-        System.out.println("\nSimulation is now running...");
-        System.out.println("Press Enter to stop the simulation.\n");
-
-        // Monitor for Enter key press to stop the simulation
-        listenForEnterKey(scanner);
-    }
-
-    private int getValidInput(Scanner scanner, String prompt, int min) {
-        while (true) {
-            System.out.print(prompt);
-            try {
-                int value = Integer.parseInt(scanner.nextLine());
-                if (value >= min) {
-                    return value;
-                } else {
-                    System.out.println("Input must be greater than or equal to " + min + ". Try again.\n");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.\n");
+            if (i <= numberOfCustomers) {
+                Thread customerThread = new Thread(new Customer("Customer-" + i, config.getTicketRetrievalInterval(),
+                        config.getCustomerRetrievalRate(), ticketPool));
+                threads.add(customerThread);
+                customerThread.start();
             }
         }
+
+        System.out.println("\nSimulation is running. Press Enter to stop.\n");
+        scanner.nextLine(); // Wait for the user to press Enter before stopping the simulation
+        stopSimulation();
     }
 
-    private void listenForEnterKey(Scanner scanner) {
-        try {
-            scanner.nextLine(); // Wait for the Enter key press
-            stopSimulation();
-        } catch (Exception e) {
-            System.err.println("Error reading input: " + e.getMessage());
-        }
-    }
-
-    // Stops the simulation
+    /**
+     * Stops the simulation by interrupting and joining all threads.
+     */
     private void stopSimulation() {
         System.out.println("\nStopping simulation...");
 
-        // Interrupt all threads
-        for (Thread thread : threads) {
-            thread.interrupt();
-        }
+        // Interrupt all threads to signal them to stop
+        threads.forEach(Thread::interrupt);
 
-        // Wait for all threads to finish
+        // Wait for all threads to finish their execution
         for (Thread thread : threads) {
             try {
-                thread.join(); // Wait for the thread to terminate
+                thread.join(); // Ensures the main thread waits for each thread to complete
             } catch (InterruptedException e) {
-                System.err.println("Error while waiting for thread termination: " + e.getMessage());
+                System.err.println("Error while waiting for threads: " + e.getMessage());
             }
         }
 
-        threads.clear(); // Clear the thread list after ensuring all threads are stopped
-        displaySummary(); // Display the simulation summary
-        System.out.println("Simulation has been stopped.");
+        displaySummary();
     }
 
-    // Displays the simulation summary
+    /**
+     * Displays the final summary of the simulation, including ticket statistics.
+     */
     private void displaySummary() {
         System.out.println("\nSimulation Summary:");
-        System.out.println("----------------------");
-        System.out.println("Total Tickets in Pool: " + ticketPool.getTicketCount());
-        System.out.println("Total Tickets Added: " + ticketPool.getTotalAdded());
-        System.out.println("Total Tickets Retrieved: " + ticketPool.getTotalRetrieved());
-        System.out.println("----------------------\n");
+        System.out.println("Tickets in Pool: " + ticketPool.getTicketCount());
+        System.out.println("Tickets Added: " + ticketPool.getTotalAdded());
+        System.out.println("Tickets Retrieved: " + ticketPool.getTotalRetrieved());
     }
 }
