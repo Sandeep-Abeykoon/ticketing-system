@@ -42,7 +42,7 @@ public class Vendor extends Person {
                 }
             } catch (InterruptedException e) {
                 System.out.println("Vendor " + id + " has stopped releasing tickets.");
-                break; 
+                break;
             }
         }
     }
