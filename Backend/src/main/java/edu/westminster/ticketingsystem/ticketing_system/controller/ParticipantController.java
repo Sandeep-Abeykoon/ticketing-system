@@ -79,7 +79,7 @@ public class ParticipantController {
      */
     @DeleteMapping("/customer/remove/{customerId}")
     public ResponseEntity<?> removeCustomer(
-            @PathVariable String customerId,
+            @PathVariable String customerId, // Assuming the customer id can be any String although for now only plain numbers are used.
             @RequestParam boolean isVIP) {
         try {
             simulationService.removeCustomer(customerId, isVIP);
