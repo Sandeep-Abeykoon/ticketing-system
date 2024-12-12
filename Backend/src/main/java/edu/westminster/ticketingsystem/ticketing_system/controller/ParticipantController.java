@@ -82,7 +82,6 @@ public class ParticipantController {
             @PathVariable String customerId,
             @RequestParam boolean isVIP) {
         try {
-            System.out.println("The Id is" + customerId); // Debugging log
             simulationService.removeCustomer(customerId, isVIP);
             return ResponseEntity.ok((isVIP ? "VIP Customer" : "Customer") + " removed successfully.");
         } catch (IllegalStateException e) {
