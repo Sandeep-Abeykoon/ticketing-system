@@ -123,6 +123,14 @@ public class TicketPool {
     public void clearPoolData() {
         lock.lock();
         try {
+            tickets.clear();
+            requestQueue.clear();
+            totalTicketsAdded = 0;
+            totalTicketsRetrieved = 0;
+            totalVIPRetrievals = 0;
+            totalNormalRetrievals = 0;
+            condition.signalAll();
+
             logService.sendStructuredLog("POOL_CLEARED", Map.of(
                     "availableTickets", tickets.size(),
                     "totalTicketsAdded", totalTicketsAdded,
@@ -139,14 +147,6 @@ public class TicketPool {
                     tickets.size(),
                     "Cleared all tickets from the pool."
             );
-
-            tickets.clear();
-            requestQueue.clear();
-            totalTicketsAdded = 0;
-            totalTicketsRetrieved = 0;
-            totalVIPRetrievals = 0;
-            totalNormalRetrievals = 0;
-            condition.signalAll();
         } finally {
             lock.unlock();
         }

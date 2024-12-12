@@ -82,13 +82,16 @@ export const WebSocketProvider = ({ children }) => {
       onStompError: (error) => {
         console.error("STOMP error:", error);
         setConnectionStatus("not connected");
+        setIsLoading(false);
       },
       onWebSocketClose: () => {
         setConnectionStatus("not connected");
+        setIsLoading(false);
       },
       onWebSocketError: (error) => {
         console.error("WebSocket error:", error);
         setConnectionStatus("not connected");
+        setIsLoading(false);
       },
     });
 
