@@ -1,8 +1,6 @@
 # Ticket Management System
 
-This project is a **console-based application** for managing ticket operations. The system simulates vendors adding tickets to a pool and customers retrieving them, demonstrating concurrency in a shared resource environment.
-
----
+This project is a console-based application for managing ticket operations. The system simulates vendors adding tickets to a pool and customers retrieving them, demonstrating concurrency in a shared resource environment.
 
 ## Features
 
@@ -15,35 +13,31 @@ This project is a **console-based application** for managing ticket operations. 
 - **Persistence**:
     - Configuration settings are saved and loaded automatically.
 
----
-
 ## Setup Instructions
 
-1. **Clone the Repository**:
+### Clone the Repository:
 
-   ```bash
-   git clone https://github.com/your-repository/ticket-management-system.git
-   cd ticket-management-system
-   ```
+```bash
+git clone https://github.com/your-repository/ticket-management-system.git
+cd ticket-management-system
+```
 
-2. **Compile the Application**:
-   Ensure you have Java installed (version 8 or higher).
+### Compile the Application:
+Ensure you have Java installed (version 8 or higher).
 
-   ```bash
-   javac -d bin src/**/*.java
-   ```
+```bash
+javac -d bin src/**/*.java
+```
 
-3. **Run the Application**:
+### Run the Application:
 
-   ```bash
-   java -cp bin main.Main
-   ```
-
----
+```bash
+java -cp bin main.Main
+```
 
 ## Usage Guidelines
 
-### 1. **Start the Application**
+### 1. Start the Application
 
 When you run the application, you'll see the main menu with these options:
 
@@ -61,7 +55,7 @@ Menu Options:
 3. Exit
 ```
 
-### 2. **Edit Configuration**
+### 2. Edit Configuration
 
 - Select `1` to update system settings.
 - You'll be prompted to provide the following:
@@ -72,84 +66,69 @@ Menu Options:
     - **Ticket Retrieval Interval**: Time (ms) between retrievals.
     - **Maximum Pool Capacity**: Maximum number of tickets in the pool.
 
-### 3. **Start Simulation**
+### 3. Start Simulation
 
 - Select `2` to begin the simulation.
 
 - Provide:
-
     - **Number of Vendors**: Vendors adding tickets to the pool.
     - **Number of Customers**: Customers retrieving tickets from the pool.
 
 - The simulation runs until you press `Enter` to stop. During the simulation:
-
     - Vendors and customers operate concurrently.
     - Real-time logs display their actions.
 
-### 4. **Exit**
+### 4. Exit
 
 - Select `3` to exit the application.
-
----
 
 ## Simulation Summary
 
 After stopping the simulation, you'll see a summary:
-
 - **Total Tickets in Pool**: Remaining tickets.
 - **Total Tickets Added**: Cumulative tickets added by vendors.
 - **Total Tickets Retrieved**: Cumulative tickets retrieved by customers.
 
----
-
 ## Troubleshooting
 
-### 1. **Java Not Found**
-
+### 1. Java Not Found
 Ensure Java is installed and added to your system's PATH. Verify with:
 
 ```bash
 java -version
 ```
 
-### 2. **Configuration File Issues**
-
+### 2. Configuration File Issues
 If you encounter errors loading the configuration:
-
 - Check if `config.ser` exists in the project directory.
 - If corrupted, delete `config.ser` and restart the application to create a new configuration.
 
-### 3. **Thread Interruption Issues**
-
+### 3. Thread Interruption Issues
 If the application hangs when stopping the simulation:
-
 - Press `Ctrl+C` to terminate the program.
 - Restart and try again.
-
----
 
 ## Project Structure
 
 ```
 src/
-├── core/
-│   ├── Main.java
-│   └── SimulationManager.java
-├── models/
-│   ├── Configuration.java
-│   ├── Person.java
-│   ├── Vendor.java
-│   ├── Customer.java
-├── components/
-│   └── TicketPool.java
-├── services/
-│   └── ConfigurationManager.java
-└── utils/
-    └── InputValidator.java
+├── Configuration.java
+├── Customer.java
+├── InputValidator.java
+├── Main.java
+├── Person.java
+├── SimulationManager.java
+├── TicketPool.java
+├── Vendor.java
+└── ConfigurationManager.java
 ```
-
----
 
 ## Contributing
 
 Feel free to fork this repository and submit pull requests for improvements.
+
+---
+
+**Author**: Sandeep Chanura Abeykoon  
+**Email**: sandeepchanura@gmail.com
+
