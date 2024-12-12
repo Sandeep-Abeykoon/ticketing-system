@@ -16,6 +16,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * The TicketPool class manages the pool of tickets in a thread-safe manner.
+ * It handles operations such as adding tickets, retrieving tickets, and clearing the pool.
+ * The class uses locking mechanisms to ensure concurrent safety and PriorityQueues
+ * to handle ticket retrieval requests in a prioritized manner.
+ */
 @Component
 @RequiredArgsConstructor
 public class TicketPool {
@@ -23,7 +29,7 @@ public class TicketPool {
     private final SimulationLogService logService;
     private final TransactionService transactionService;
     private final List<Ticket> tickets = new ArrayList<>();
-    private final Lock lock = new ReentrantLock(true);
+    private final Lock lock = new ReentrantLock(true); // Ensures fair locking for threads
     private final Condition condition = lock.newCondition();
     private final PriorityQueue<TicketRetrievalRequest> requestQueue = new PriorityQueue<>();
     private int totalTicketsRetrieved = 0;
@@ -31,6 +37,12 @@ public class TicketPool {
     private int totalVIPRetrievals = 0;
     private int totalNormalRetrievals = 0;
 
+    /**
+     * Adds tickets to the pool if there is sufficient capacity.
+     *
+     * @param ticketsToAdd List of tickets to add to the pool.
+     * @return true if tickets were added successfully, false if there was insufficient capacity.
+     */
     public boolean addTickets(List<Ticket> ticketsToAdd) {
         lock.lock();
         int ticketsToAddSize = ticketsToAdd.size();
@@ -42,10 +54,10 @@ public class TicketPool {
             tickets.addAll(ticketsToAdd);
             totalTicketsAdded += ticketsToAddSize;
 
-            // Log transaction
+            // Logs the ticket addition operation to the database
             transactionService.logTransaction(
                     "ADD",
-                    "VENDOR", // Default or replace with actual vendor ID if available
+                    "VENDOR",
                     "VENDOR",
                     ticketsToAddSize,
                     "Added tickets to the pool."
@@ -66,15 +78,25 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves tickets from the pool based on the given request.
+     *
+     * @param request The retrieval request containing customer details and ticket count.
+     * @throws InterruptedException If the thread is interrupted while waiting for tickets.
+     */
     public void retrieveTickets(TicketRetrievalRequest request) throws InterruptedException {
         lock.lock();
         try {
             requestQueue.add(request);
-            while (requestQueue.peek() != request || tickets.size() < request.getTicketsPerRetrieval()) {
-                condition.await();
+            // Wait until the current request is the highest priority and there are enough tickets
+            if (request != null) {
+                while (requestQueue.peek() != request || tickets.size() < request.getTicketsPerRetrieval()) {
+                    condition.await();
+                }
             }
 
             requestQueue.poll();
+            assert request != null;
             if (tickets.size() < request.getTicketsPerRetrieval()) {
                 logService.sendStructuredLog("TICKET_RETRIEVAL_FAILED", Map.of(
                         "customerId", request.getCustomerId(),
@@ -84,10 +106,12 @@ public class TicketPool {
                 return;
             }
 
+            // Remove tickets for the request
             if (request.getTicketsPerRetrieval() > 0) {
                 tickets.subList(0, request.getTicketsPerRetrieval()).clear();
             }
 
+            // Updating the counter variable states
             totalTicketsRetrieved += request.getTicketsPerRetrieval();
             if (request.isVIP()) {
                 totalVIPRetrievals += request.getTicketsPerRetrieval();
@@ -95,7 +119,7 @@ public class TicketPool {
                 totalNormalRetrievals += request.getTicketsPerRetrieval();
             }
 
-            // Log transaction
+            // Logs the ticket retrieval operation to the database
             transactionService.logTransaction(
                     "RETRIEVE",
                     request.getCustomerId(),
@@ -120,6 +144,9 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Clears all tickets and resets the pool data.
+     */
     public void clearPoolData() {
         lock.lock();
         try {
@@ -139,7 +166,7 @@ public class TicketPool {
                     "totalNormalRetrievals", totalNormalRetrievals
             ));
 
-            // Log transaction
+            // logs the transaction to the database
             transactionService.logTransaction(
                     "CLEAR",
                     "SYSTEM",
@@ -152,6 +179,11 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves the current number of available tickets in the pool.
+     *
+     * @return The number of tickets in the pool.
+     */
     public int getTicketCount() {
         lock.lock();
         try {
@@ -161,6 +193,11 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves the total number of tickets retrieved from the pool.
+     *
+     * @return Total number of retrieved tickets.
+     */
     public int getTotalTicketsRetrieved() {
         lock.lock();
         try {
@@ -170,6 +207,11 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves the total number of tickets added to the pool.
+     *
+     * @return Total number of added tickets.
+     */
     public int getTotalTicketsAdded() {
         lock.lock();
         try {
@@ -179,6 +221,11 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves the total number of VIP tickets retrieved.
+     *
+     * @return Total number of VIP ticket retrievals.
+     */
     public int getTotalVIPRetrievals() {
         lock.lock();
         try {
@@ -188,6 +235,11 @@ public class TicketPool {
         }
     }
 
+    /**
+     * Retrieves the total number of normal tickets retrieved.
+     *
+     * @return Total number of normal ticket retrievals.
+     */
     public int getTotalNormalRetrievals() {
         lock.lock();
         try {

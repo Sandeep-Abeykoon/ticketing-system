@@ -1,4 +1,5 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
+
 import edu.westminster.ticketingsystem.ticketing_system.config.SystemConfiguration;
 import edu.westminster.ticketingsystem.ticketing_system.model.ConfigurationData;
 import edu.westminster.ticketingsystem.ticketing_system.service.ConfigurationService;
@@ -7,6 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * ConfigurationController provides REST endpoints for managing the system's configuration.
+ * This controller allows clients to retrieve the current configuration, update the configuration,
+ * and check the configuration status of the system.
+ */
 @RestController
 @AllArgsConstructor
 @CrossOrigin
@@ -15,6 +21,11 @@ public class ConfigurationController {
 
     private final ConfigurationService configurationService;
 
+    /**
+     * Retrieves the current system configuration.
+     *
+     * @return ResponseEntity containing the system configuration or an error message.
+     */
     @GetMapping
     public ResponseEntity<?> getConfiguration() {
         try {
@@ -26,23 +37,34 @@ public class ConfigurationController {
         }
     }
 
+    /**
+     * Updates the system configuration with new data.
+     *
+     * @param newConfigurationData The new configuration data to be updated.
+     * @return ResponseEntity containing the updated configuration or an error message.
+     */
     @PutMapping
     public ResponseEntity<?> updateSystemConfigData(@RequestBody ConfigurationData newConfigurationData) {
         try {
             return ResponseEntity.ok(configurationService.updateSystemConfigData(newConfigurationData));
         } catch (IllegalStateException e) {
-            // state-related errors
+            // Handles state-related errors
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
         } catch (IllegalArgumentException e) {
-            // Input validation errors
+            // Handles input validation errors
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Input Error: " + e.getMessage());
         } catch (Exception e) {
-            // Unexpected errors
+            // Handles unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to update configuration: " + e.getMessage());
         }
     }
 
+    /**
+     * Retrieves the status of the system configuration.
+     *
+     * @return ResponseEntity containing a boolean indicating whether the system is configured or an error message.
+     */
     @GetMapping("/status")
     public ResponseEntity<?> getSystemConfigStatus() {
         try {
@@ -54,4 +76,3 @@ public class ConfigurationController {
         }
     }
 }
-

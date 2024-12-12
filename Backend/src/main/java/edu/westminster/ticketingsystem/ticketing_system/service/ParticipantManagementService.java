@@ -8,6 +8,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ParticipantManagementService handles the addition and removal of participants
+ * (customers and vendors) in the simulation.
+ * This service manages participant threads, ensuring proper validation and logging
+ * during their lifecycle in the simulation.
+ */
 @Service
 @RequiredArgsConstructor
 public class ParticipantManagementService {
@@ -15,7 +21,13 @@ public class ParticipantManagementService {
     private final ParticipantFactory participantFactory;
     private final SimulationLogService logService;
 
-    // Add a customer (VIP or Normal) to the given list
+    /**
+     * Adds a customer (VIP or normal) to the provided list of customer threads.
+     *
+     * @param customerThreads The list of customer threads.
+     * @param isVIP Whether the customer is a VIP.
+     * @param isSimulationRunning Whether the simulation is currently running.
+     */
     public void addCustomer(List<Thread> customerThreads, boolean isVIP, boolean isSimulationRunning) {
         validateSimulationRunning(isSimulationRunning);
 
@@ -31,11 +43,15 @@ public class ParticipantManagementService {
                 "id", customerId,
                 "type", isVIP ? "VIP Customer" : "Customer"
         ));
-
-
     }
 
-    // Remove a customer (VIP or Normal) from the given list by ID
+    /**
+     * Removes a customer (VIP or normal) from the provided list of customer threads by ID.
+     *
+     * @param customerThreads The list of customer threads.
+     * @param customerId The ID of the customer to be removed.
+     * @param isSimulationRunning Whether the simulation is currently running.
+     */
     public void removeCustomer(List<Thread> customerThreads, String customerId, boolean isSimulationRunning) {
         validateSimulationRunning(isSimulationRunning);
 
@@ -53,7 +69,12 @@ public class ParticipantManagementService {
         ));
     }
 
-    // Add a vendor to the given list
+    /**
+     * Adds a vendor to the provided list of vendor threads.
+     *
+     * @param vendorThreads The list of vendor threads.
+     * @param isSimulationRunning Whether the simulation is currently running.
+     */
     public void addVendor(List<Thread> vendorThreads, boolean isSimulationRunning) {
         validateSimulationRunning(isSimulationRunning);
 
@@ -69,7 +90,13 @@ public class ParticipantManagementService {
         ));
     }
 
-    // Remove a vendor from the given list by ID
+    /**
+     * Removes a vendor from the provided list of vendor threads by ID.
+     *
+     * @param vendorThreads The list of vendor threads.
+     * @param vendorId The ID of the vendor to be removed.
+     * @param isSimulationRunning Whether the simulation is currently running.
+     */
     public void removeVendor(List<Thread> vendorThreads, String vendorId, boolean isSimulationRunning) {
         validateSimulationRunning(isSimulationRunning);
 
@@ -87,14 +114,24 @@ public class ParticipantManagementService {
         ));
     }
 
-    // Utility to validate if the simulation is running
+    /**
+     * Validates whether the simulation is currently running.
+     *
+     * @param isSimulationRunning Whether the simulation is running.
+     * @throws IllegalStateException if the simulation is not running.
+     */
     private void validateSimulationRunning(boolean isSimulationRunning) {
         if (!isSimulationRunning) {
             throw new IllegalStateException("Simulation is not running.");
         }
     }
 
-    // Utility to get the next ID based on the current list
+    /**
+     * Calculates the next unique ID for a participant based on the current list of threads.
+     *
+     * @param threads The list of threads.
+     * @return The next unique ID as an integer.
+     */
     private int getNextId(List<Thread> threads) {
         return threads.stream()
                 .mapToInt(thread -> Integer.parseInt(thread.getName()))
@@ -102,7 +139,13 @@ public class ParticipantManagementService {
                 .orElse(0) + 1;
     }
 
-    // Utility to create and start a thread
+    /**
+     * Creates and starts a thread for the given participant.
+     *
+     * @param participant The participant to run in the thread.
+     * @param id The ID to assign to the thread.
+     * @return The created and started thread.
+     */
     private Thread createAndStartThread(Runnable participant, String id) {
         Thread thread = new Thread(participant);
         thread.setName(id);

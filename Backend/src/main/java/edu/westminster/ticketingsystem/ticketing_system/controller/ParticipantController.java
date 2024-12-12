@@ -5,6 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * ParticipantController provides REST endpoints for managing participants in the simulation.
+ * This controller handles operations such as adding and removing vendors and customers (normal or VIP).
+ */
 @RestController
 @CrossOrigin
 @RequiredArgsConstructor
@@ -13,7 +17,11 @@ public class ParticipantController {
 
     private final SimulationService simulationService;
 
-    // Add a vendor
+    /**
+     * Adds a new vendor to the simulation.
+     *
+     * @return ResponseEntity with a success message or error message if the operation fails.
+     */
     @PostMapping("/vendor/add")
     public ResponseEntity<?> addVendor() {
         try {
@@ -26,7 +34,12 @@ public class ParticipantController {
         }
     }
 
-    // Remove a vendor
+    /**
+     * Removes a vendor from the simulation.
+     *
+     * @param vendorId The ID of the vendor to be removed.
+     * @return ResponseEntity with a success message or error message if the operation fails.
+     */
     @DeleteMapping("/vendor/remove/{vendorId}")
     public ResponseEntity<?> removeVendor(@PathVariable String vendorId) {
         try {
@@ -39,7 +52,12 @@ public class ParticipantController {
         }
     }
 
-    // Add a customer (Normal or VIP)
+    /**
+     * Adds a new customer to the simulation.
+     *
+     * @param isVIP Indicates whether the customer is a VIP.
+     * @return ResponseEntity with a success message or error message if the operation fails.
+     */
     @PostMapping("/customer/add")
     public ResponseEntity<?> addCustomer(@RequestParam boolean isVIP) {
         try {
@@ -52,13 +70,19 @@ public class ParticipantController {
         }
     }
 
-    // Remove a customer (Normal or VIP)
+    /**
+     * Removes a customer from the simulation.
+     *
+     * @param customerId The ID of the customer to be removed.
+     * @param isVIP Indicates whether the customer is a VIP.
+     * @return ResponseEntity with a success message or error message if the operation fails.
+     */
     @DeleteMapping("/customer/remove/{customerId}")
     public ResponseEntity<?> removeCustomer(
             @PathVariable String customerId,
             @RequestParam boolean isVIP) {
         try {
-            System.out.println("The Id is" + customerId);
+            System.out.println("The Id is" + customerId); // Debugging log
             simulationService.removeCustomer(customerId, isVIP);
             return ResponseEntity.ok((isVIP ? "VIP Customer" : "Customer") + " removed successfully.");
         } catch (IllegalStateException e) {
