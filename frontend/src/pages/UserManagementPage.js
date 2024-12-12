@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button, TextField, Typography, Box, Select, MenuItem, Paper } from "@mui/material";
-import { WebSocketContext } from "../components/context/WebSocketContext";
-import { addVendor, removeVendor, addCustomer, removeCustomer } from "../dummyApi";
+import { WebSocketContext } from "../context/WebSocketContext";
+import { addVendor, removeVendor, addCustomer, removeCustomer } from "../api";
 
 const UserManagementPage = () => {
   const { numberOfCustomers, numberOfVIPCustomers, numberOfVendors } = useContext(WebSocketContext);

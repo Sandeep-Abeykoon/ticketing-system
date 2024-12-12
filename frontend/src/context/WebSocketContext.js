@@ -1,11 +1,13 @@
 import React, { createContext, useState, useEffect } from "react";
 import { Client } from "@stomp/stompjs";
-import { getSimulationStatus, resetSimulation } from "../../dummyApi";
-import { createStateMapper, updateStateFromResponse } from "../../utils/stateMapper";
+import { getSimulationStatus, resetSimulation } from "../api";
+import { createStateMapper, updateStateFromResponse } from "../utils/stateMapper";
 
+// Context for managing WebSocket-related state and functionality
 export const WebSocketContext = createContext();
 
 export const WebSocketProvider = ({ children }) => {
+  // State variables for managing logs, simulation status, participants, and tickets
   const [logs, setLogs] = useState([]);
   const [simulationStatus, setSimulationStatus] = useState(null);
   const [availableTickets, setAvailableTickets] = useState(null);
@@ -19,7 +21,7 @@ export const WebSocketProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
 
-  // Create the state mapper dynamically
+  // Dynamically map state setters for updating state based on responses
   const stateMapper = createStateMapper({
     setSimulationStatus,
     setAvailableTickets,
@@ -33,6 +35,7 @@ export const WebSocketProvider = ({ children }) => {
   });
 
   useEffect(() => {
+    // Fetch initial simulation data and establish WebSocket connection
     const fetchInitialData = async () => {
       try {
         const statusResponse = await getSimulationStatus();
@@ -44,24 +47,26 @@ export const WebSocketProvider = ({ children }) => {
       }
     };
 
+    // Configure WebSocket client
     const client = new Client({
       brokerURL: "ws://localhost:8080/ws-status",
-      reconnectDelay: 5000,
+      reconnectDelay: 5000, // Reconnect delay in milliseconds
       onConnect: () => {
         setConnectionStatus("connected");
         fetchInitialData();
 
-        // Simulation Status Subscription
+        // Subscribe to simulation status updates
         client.subscribe("/topic/simulation-status", (message) => {
           const isRunning = JSON.parse(message.body);
           setSimulationStatus(isRunning);
         });
 
-        // Real-time Logs Subscription
+        // Subscribe to real-time logs
         client.subscribe("/topic/realtime-logs", (message) => {
           const log = JSON.parse(message.body);
           const { action, details } = log;
 
+          // Update state based on actions
           if (
             action === "TICKET_ADD" ||
             action === "TICKET_RETRIEVAL" ||
@@ -95,14 +100,16 @@ export const WebSocketProvider = ({ children }) => {
       },
     });
 
+    // Activate WebSocket client
     client.activate();
 
+    // Clean up on component unmount
     return () => {
       client.deactivate();
     };
   }, []);
 
-  // Reset Simulation Function
+  // Reset simulation data to initial state
   const resetSimulationData = async () => {
     setIsLoading(true);
     try {
@@ -117,6 +124,7 @@ export const WebSocketProvider = ({ children }) => {
   };
 
   return (
+    // Provide WebSocket state and functionality to child components
     <WebSocketContext.Provider
       value={{
         logs,

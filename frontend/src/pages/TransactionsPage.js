@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllTransactions } from "../dummyApi";
+import { getAllTransactions } from "../api";
 import {
   Typography,
   Table,

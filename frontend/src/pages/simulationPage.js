@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useEffect } from "react";
-import { WebSocketContext } from "../components/context/WebSocketContext";
-import { startSimulation, stopSimulation } from "../dummyApi";
+import { WebSocketContext } from "../context/WebSocketContext";
+import { startSimulation, stopSimulation } from "../api";
 import { validateField } from "../utils/validation";
 import { formatLogMessage } from "../utils/logFormatter";
 import { TextField, Button, Box, Alert, Typography, Paper, Card, CardContent } from "@mui/material";

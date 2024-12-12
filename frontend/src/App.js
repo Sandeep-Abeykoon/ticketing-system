@@ -5,7 +5,7 @@ import SimulationPage from "./pages/simulationPage";
 import AnalyticsDashboard from "./pages/DashboardPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import UserManagementPage from "./pages/UserManagementPage";
-import { WebSocketProvider } from "./components/context/WebSocketContext";
+import { WebSocketProvider } from "./context/WebSocketContext";
 
 const App = () => {
 

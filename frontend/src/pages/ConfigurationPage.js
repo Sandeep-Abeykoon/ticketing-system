@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchConfiguration, updateConfiguration } from "../dummyApi";
+import { fetchConfiguration, updateConfiguration } from "../api";
 import { validateField } from "../utils/validation";
 import { TextField, Button, Box, Alert, Typography } from "@mui/material";
 
@@ -15,9 +15,9 @@ const ConfigurationPage = () => {
 
   const [systemConfigured, setSystemConfigured] = useState(false);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true); // Loading state for fetching data
-  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submission
-  const [errors, setErrors] = useState({}); // Validation state
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [errors, setErrors] = useState({}); 
 
   // Fetch configuration on page load
   useEffect(() => {

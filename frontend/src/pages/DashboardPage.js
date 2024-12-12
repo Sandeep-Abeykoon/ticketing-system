@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { WebSocketContext } from "../components/context/WebSocketContext";
+import { WebSocketContext } from "../context/WebSocketContext";
 import { Box, Typography, Card, CardContent } from "@mui/material";
 import { Bar, Pie, Line } from "react-chartjs-2";
 import {

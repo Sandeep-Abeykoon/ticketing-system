@@ -1,70 +1,121 @@
-# Getting Started with Create React App
+# Ticketing System Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
+This project is a **Ticketing System Application** built using React and Material-UI for the frontend, along with a WebSocket integration for real-time data updates. It features a simulation of ticketing operations with support for managing participants (vendors, normal customers, and VIP customers), analyzing transaction data, and visualizing analytics through various charts.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### Main Features
+- **Real-Time Updates**: Leverages WebSocket for live updates on ticket availability, sales, and participant management.
+- **Responsive UI**: Optimized for both desktop and mobile devices using Material-UI's responsive components.
+- **Simulation Dashboard**: Start, stop, and monitor ticketing simulations with real-time logs.
+- **Analytics Dashboard**: Visualize sales data with line charts, bar charts, and pie charts.
+- **Configuration Page**: Manage system settings such as ticket release rates and capacity.
+- **Transactions Overview**: View a detailed list of all transactions, including ticket sales and additions.
+- **User Management**: Add or remove vendors and customers dynamically.
 
-### `npm start`
+### Pages
+1. **Header Navigation**: Centralized navigation for Configuration, Simulation, Dashboard, Transactions, and User Management.
+2. **Configuration Page**: Configure system parameters and update settings with form validation.
+3. **Simulation Page**: Start or stop simulations, monitor logs, and reset data.
+4. **Analytics Dashboard**: Real-time visual analytics of ticket sales and participant data.
+5. **Transactions Page**: Detailed transaction history with aggregate statistics.
+6. **User Management Page**: Manage participants dynamically with user-friendly controls.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Technologies Used
+- **Frontend**:
+  - React (Functional Components, Context API)
+  - Material-UI (for styling and components)
+  - Chart.js (for data visualization)
+- **Backend**:
+  - REST API for system configuration and participant management
+  - WebSocket for real-time updates
+  - Axios for HTTP requests
+- **Utilities**:
+  - Validation Functions
+  - Log Formatter
+  - State Mapper for efficient state management
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Installation and Setup
 
-### `npm test`
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- Backend server running at `http://localhost:8080`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the application:
+   ```bash
+   npm start
+   ```
+4. Access the application at `http://localhost:3000`.
 
-### `npm run build`
+### Backend Configuration
+Ensure the backend server is running with the following endpoints:
+- `/api/configuration` for fetching and updating configurations.
+- `/api/simulation` for starting, stopping, and resetting simulations.
+- `/api/transactions` for retrieving transaction data.
+- `/participants` for managing vendors and customers.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Directory Structure
+```
+src
+|-- components
+|   |-- Header.jsx          # Navigation bar
+|   |-- ConfigurationPage.jsx  # Configuration management
+|   |-- SimulationPage.jsx  # Simulation controls and logs
+|   |-- AnalyticsDashboard.jsx # Charts and analytics
+|   |-- TransactionsPage.jsx   # Transaction history
+|   |-- UserManagementPage.jsx # Add/remove vendors and customers
+|
+|-- context
+|   |-- WebSocketContext.jsx   # WebSocket state management
+|
+|-- utils
+|   |-- validation.js       # Form validation
+|   |-- logFormatter.js     # Format logs for display
+|   |-- stateMapper.js      # Map API responses to state
+|
+|-- api
+|   |-- api.js         #  API addresses for functional purposes
+|
+|-- App.js                  # Main application
+|-- index.js                # Entry point
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Usage
+### Simulation Management
+- Navigate to the **Simulation Page** to start or stop the simulation.
+- Adjust the number of customers, VIP customers, and vendors before starting.
+- Monitor logs in real time.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Analytics
+- Access the **Analytics Dashboard** to view line, bar, and pie charts showing ticket sales trends.
+- Analyze data for Normal and VIP customers.
 
-### `npm run eject`
+### User Management
+- Add or remove participants (vendors, normal customers, VIP customers) from the **User Management Page**.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Configuration
+- Update system parameters on the **Configuration Page** with real-time validation.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Transactions
+- View detailed transaction history and aggregate statistics on the **Transactions Page**.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Author
+**Sandeep Chanura Abeykoon**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+**Email:** sandeepchanura@gmail.com
 
-## Learn More
+## License
+This project is licensed under the MIT License. See `LICENSE` for more details.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
