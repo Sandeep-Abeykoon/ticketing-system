@@ -4,9 +4,7 @@
  */
 public abstract class Person implements Runnable {
     protected String id;
-    protected int interval;
-
-    /**
+    protected int interval;/**
      * Constructs a Person with the specified ID and interval.
      *
      * @param id       Unique identifier for the person.

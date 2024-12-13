@@ -80,5 +80,6 @@ public class SimulationManager {
         System.out.println("Tickets in Pool: " + ticketPool.getTicketCount());
         System.out.println("Tickets Added: " + ticketPool.getTotalAdded());
         System.out.println("Tickets Retrieved: " + ticketPool.getTotalRetrieved());
+        System.out.println();
     }
 }

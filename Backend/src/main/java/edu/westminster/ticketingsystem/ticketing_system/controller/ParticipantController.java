@@ -1,9 +1,9 @@
 package edu.westminster.ticketingsystem.ticketing_system.controller;
 
-import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+        import edu.westminster.ticketingsystem.ticketing_system.service.SimulationService;
+        import lombok.RequiredArgsConstructor;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.*;
 
 /**
  * ParticipantController provides REST endpoints for managing participants in the simulation.
